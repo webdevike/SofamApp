@@ -12,6 +12,9 @@
     "readyForLaunch": "Ready for launch.",
     "continue": "CONTINUE"
   },
+  "loginScreen": {
+    "header": "POWERD BY ISAAC"
+  },
   "demoScreen": {
     "howTo": "HOW TO",
     "title": "What’s In This Stack?",

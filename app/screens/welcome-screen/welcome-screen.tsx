@@ -1,9 +1,13 @@
 import React, { FunctionComponent as Component } from "react"
-import { View, Image, ViewStyle, TextStyle, ImageStyle, SafeAreaView } from "react-native"
+import { View, Image, ViewStyle, TextStyle, ImageStyle, Text } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { observer } from "mobx-react-lite"
-import { Button, Header, Screen, Text, Wallpaper } from "../../components"
+import { Button, Header, Screen, Wallpaper } from "../../components"
 import { color, spacing, typography } from "../../theme"
+import { useQuery, gql, useMutation } from "@apollo/client"
+import { cache } from '../../cache'
+import { TextInput } from "react-native-gesture-handler"
+
 const bowserLogo = require("./bowser.png")
 
 const FULL: ViewStyle = { flex: 1 }
@@ -69,47 +73,94 @@ const CONTINUE_TEXT: TextStyle = {
   fontSize: 13,
   letterSpacing: 2,
 }
+
+const TEXT_INPUT: ViewStyle = {
+  paddingVertical: spacing[4],
+  paddingHorizontal: spacing[4],
+  marginBottom: spacing[5],
+  backgroundColor: "white",
+}
+
 const FOOTER: ViewStyle = { backgroundColor: "#20162D" }
 const FOOTER_CONTENT: ViewStyle = {
   paddingVertical: spacing[4],
   paddingHorizontal: spacing[4],
 }
 
+const USERS = gql`
+  {
+  users {
+    name
+  }
+}`
+
+const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password)
+  }
+`
+
+const IS_LOGGED_IN = gql`
+    query IsUserLoggedIn {
+      isLoggedIn @client
+    }
+  `
+
 export const WelcomeScreen: Component = observer(function WelcomeScreen() {
   const navigation = useNavigation()
-  const nextScreen = () => navigation.navigate("demo")
+  const nextScreen = () => {
+    cache.writeQuery({
+      query: IS_LOGGED_IN,
+      data: {
+        isLoggedIn: false
+      },
+    })
+  }
+  // const { loading, error, data } = useQuery(USERS)
+  const [login, { data }] = useMutation(LOGIN)
+  const { data: loggedIn } = useQuery(IS_LOGGED_IN)
 
+  const [password, onPasswordChange] = React.useState("")
+  // console.log("WelcomeScreen -> password", password)
+  const [email, onEmailChange] = React.useState("")
+  // console.log("WelcomeScreen -> email", email)
+
+  // TODO image picker
+  // const _pickImage = async () => {
+  //   try {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.All,
+  //       allowsEditing: true,
+  //       aspect: [4, 3],
+  //       quality: 1,
+  //     })
+  //     console.log(result)
+  //   } catch (E) {
+  //     console.log(E)
+  //   }
+  // }
+
+  // if (loading) {
+  //   return (
+  //     <View style={FULL}>
+  //       <Wallpaper />
+  //       <Screen style={CONTAINER} preset="scroll" backgroundColor={color.transparent}>
+  //         <Text>..loading</Text>
+  //       </Screen>
+  //     </View>
+  //   )
+  // }
+  // if (error) {
+  //   return (
+  //     <View style={FULL}>
+  //       <Wallpaper />
+  //       <Screen style={CONTAINER} preset="scroll" backgroundColor={color.transparent}>
+  //         <Text>{JSON.stringify(error, undefined, 2)}</Text>
+  //       </Screen>
+  //     </View>
+  //   )
+  // }
   return (
-    <View style={FULL}>
-      <Wallpaper />
-      <Screen style={CONTAINER} preset="scroll" backgroundColor={color.transparent}>
-        <Header headerTx="welcomeScreen.poweredBy" style={HEADER} titleStyle={HEADER_TITLE} />
-        <Text style={TITLE_WRAPPER}>
-          <Text style={TITLE} text="Your new app, " />
-          <Text style={ALMOST} text="almost" />
-          <Text style={TITLE} text="!" />
-        </Text>
-        <Text style={TITLE} preset="header" tx="welcomeScreen.readyForLaunch" />
-        <Image source={bowserLogo} style={BOWSER} />
-        <Text style={CONTENT}>
-          This probably isn't what your app is going to look like. Unless your designer handed you
-          this screen and, in that case, congrats! You're ready to ship.
-        </Text>
-        <Text style={CONTENT}>
-          For everyone else, this is where you'll see a live preview of your fully functioning app
-          using Ignite.
-        </Text>
-      </Screen>
-      <SafeAreaView style={FOOTER}>
-        <View style={FOOTER_CONTENT}>
-          <Button
-            style={CONTINUE}
-            textStyle={CONTINUE_TEXT}
-            tx="welcomeScreen.continue"
-            onPress={nextScreen}
-          />
-        </View>
-      </SafeAreaView>
-    </View>
+    <Text>Hello</Text>
   )
 })

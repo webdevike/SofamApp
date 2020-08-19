@@ -6,7 +6,9 @@
  */
 import React from "react"
 import { createStackNavigator } from "@react-navigation/stack"
-import { WelcomeScreen, DemoScreen } from "../screens"
+import { HomeScreen, DemoScreen, ProfileScreen } from "../screens"
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { AntDesign } from '@expo/vector-icons'
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -21,24 +23,40 @@ import { WelcomeScreen, DemoScreen } from "../screens"
  *   https://reactnavigation.org/docs/typescript#type-checking-the-navigator
  */
 export type PrimaryParamList = {
-  welcome: undefined
-  demo: undefined
+  home: undefined,
+  story: undefined
 }
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
-const Stack = createStackNavigator<PrimaryParamList>()
+const Tab = createBottomTabNavigator()
+// const Stack = createStackNavigator<PrimaryParamList>()
 
 export function PrimaryNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        gestureEnabled: true,
-      }}
-    >
-      <Stack.Screen name="welcome" component={WelcomeScreen} />
-      <Stack.Screen name="demo" component={DemoScreen} />
-    </Stack.Navigator>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName
+          if (route.name == 'home') {
+            iconName = 'home'
+          } else if (route.name == 'demo') {
+            iconName = 'plussquareo'
+          } else if (route.name == 'profile') {
+            iconName = 'user'
+          }
+
+          return <AntDesign name={iconName} size={size} color={color} />
+        }
+      })}
+      tabBarOptions={{
+        showLabel: false,
+        activeTintColor: 'tomato',
+        inactiveTintColor: 'gray',
+      }}>
+      <Tab.Screen name="home" component={HomeScreen} />
+      <Tab.Screen name="demo" component={DemoScreen} />
+      <Tab.Screen name="profile" component={ProfileScreen} />
+    </Tab.Navigator>
   )
 }
 
