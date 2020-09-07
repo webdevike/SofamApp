@@ -1,6 +1,6 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-
+import { MemoryCard } from '../../components/MemoryCard/MemoryCard'
 import {
   SafeAreaView,
   FlatList,
@@ -24,6 +24,7 @@ const USERS = gql`
     name
     stories {
       id
+      url
     }
   }
 }
@@ -65,12 +66,17 @@ const IMAGE_MEMORY: ImageStyle = {
   height: 400,
 }
 
+const MEMORY_WRAPPER: ViewStyle = {
+  position: 'relative',
+  marginBottom: 32
+}
+
 const renderMemories = ({ item }) => {
   return (
-    <>
+    <View style={MEMORY_WRAPPER}>
       <Image style={IMAGE_MEMORY} source={{ uri: item.location }}/>
-      <Text>BONEEEERRRR</Text>
-    </>
+      <MemoryCard />
+    </View>
   )
 }
 
@@ -80,7 +86,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   const { loading, data } = useQuery(USERS)
   const { loading: memoryIsLoading, data: allMemories } = useQuery(MEMORIES)
 
-  const renderItem = ({ item }) => {
+  const renderUsers = ({ item }) => {
     return (
       <View style={IMAGE_CONTAINER}>
         <TouchableWithoutFeedback style={IMAGE} onPress={() => {
@@ -107,7 +113,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
               <FlatList
                 horizontal={true}
                 data={data.users}
-                renderItem={renderItem}
+                renderItem={renderUsers}
                 keyExtractor={item => item.id}
                 showsHorizontalScrollIndicator={false}
 

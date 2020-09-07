@@ -1,39 +1,45 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, Text, TouchableOpacity, FlatList } from "react-native"
-import { Screen } from "../components"
-// import { useNavigation } from "@react-navigation/native"
-// import { useStores } from "../models"
-import { color } from "../theme"
-import { cache } from "../cache"
-import { gql } from "@apollo/client"
-import { remove } from "../utils/storage"
-import { otherwise } from "ramda"
-
-const ROOT: ViewStyle = {
-  backgroundColor: color.palette.black,
-}
+import { StyleSheet, Text, View, Button } from 'react-native'
+import Animated from 'react-native-reanimated'
+import BottomSheet from 'reanimated-bottom-sheet'
 
 export const ProfileScreen: Component = observer(function ProfileScreen() {
-  const renderItem = ({ item }) => {
-    return (
-      <Text>{item.title}</Text>
-    )
-  }
+  const renderContent = () => (
+    <View
+      style={{
+        backgroundColor: 'white',
+        padding: 16,
+        height: 500,
+      }}
+    >
+      <Text>Swipe down to close</Text>
+    </View>
+  )
 
-  const data = [
-    { id: 1, title: 'hello' },
-    { id: 2, title: 'w' },
-    { id: 3, title: 'wer' },
-  ]
+  const sheetRef = React.useRef(null)
 
   return (
-    <Screen style={ROOT} preset="scroll">
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
+    <>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'papayawhip',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Button
+          title="Open Bottom Sheet"
+          onPress={Login}
+        />
+      </View>
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={[500, 100]}
+        borderRadius={10}
+        renderContent={renderContent}
       />
-    </Screen>
+    </>
   )
 })

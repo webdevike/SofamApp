@@ -1,6 +1,6 @@
 import React, { FunctionComponent as Component, useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground } from "react-native"
+import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform } from "react-native"
 import { Button, Text } from "../../components"
 import { color, spacing, typography } from "../../theme"
 import { gql, useMutation } from "@apollo/client"
@@ -63,7 +63,7 @@ const TEXT_INPUT: ViewStyle = {
 const LOGIN_BUTTON: ViewStyle = {
   paddingVertical: spacing[4],
   paddingHorizontal: spacing[4],
-  backgroundColor: "#E14C9F",
+  backgroundColor: color.palette.orange,
   borderRadius: 50,
 }
 
@@ -93,50 +93,51 @@ export const LoginScreen: Component = observer(function LoginScreen() {
   const [password, setPassword] = useState("")
   return (
     <View style={FULL}>
-      <ImageBackground style={BACKGROUND_IMAGE} source={patternBg}>
-        <View style={CONTAINER}>
-          <View style={TEXT_CONTAINER}>
-            <Text style={HEADING}>Welcome To Sofam</Text>
-            <Text style={CAPTION}>The only social media for families</Text>
-          </View>
-          <TextInput
-            placeholderTextColor="#BDBDBD"
-            style={TEXT_INPUT}
-            onChangeText={text => setEmail(text)}
-            value={email}
-            placeholder="Email"
-            autoCapitalize="none"
-          />
-          <TextInput
-            placeholderTextColor="#BDBDBD"
-            style={TEXT_INPUT}
-            onChangeText={text => setPassword(text)}
-            value={password}
-            placeholder="Password"
-            autoCapitalize="none"
-          />
-          <Button
-            style={LOGIN_BUTTON}
-            textStyle={LOGIN_BUTTON_TEXT}
-            text="Login"
-            onPress={async () => {
-              const { data }: any = await login({
-                variables: {
-                  email: email,
-                  password: password,
-                },
-              })
-              saveString("@authToken", data.login)
-              cache.writeQuery({
-                query: IS_LOGGED_IN,
-                data: {
-                  isLoggedIn: Boolean(loadString("@authToken")),
-                },
-              })
-            }}
-          />
+      <KeyboardAvoidingView
+        style={CONTAINER}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={TEXT_CONTAINER}>
+          <Text style={HEADING}>Welcome To Sofam</Text>
+          <Text style={CAPTION}>The only social media for families</Text>
         </View>
-      </ImageBackground>
+        <TextInput
+          placeholderTextColor="#BDBDBD"
+          style={TEXT_INPUT}
+          onChangeText={text => setEmail(text)}
+          value={email}
+          placeholder="Email"
+          autoCapitalize="none"
+        />
+        <TextInput
+          placeholderTextColor="#BDBDBD"
+          style={TEXT_INPUT}
+          onChangeText={text => setPassword(text)}
+          value={password}
+          placeholder="Password"
+          autoCapitalize="none"
+        />
+        <Button
+          style={LOGIN_BUTTON}
+          textStyle={LOGIN_BUTTON_TEXT}
+          text="Login"
+          onPress={async () => {
+            const { data }: any = await login({
+              variables: {
+                email: email,
+                password: password,
+              },
+            })
+            saveString("@authToken", data.login)
+            cache.writeQuery({
+              query: IS_LOGGED_IN,
+              data: {
+                isLoggedIn: Boolean(loadString("@authToken")),
+              },
+            })
+          }}
+        />
+      </KeyboardAvoidingView>
     </View>
   )
 })

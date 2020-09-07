@@ -2,14 +2,15 @@ import React, { FunctionComponent as Component } from "react"
 import { Image, ImageStyle, Platform, TextStyle, View, ViewStyle } from "react-native"
 import * as ImagePicker from 'expo-image-picker'
 import { useNavigation } from "@react-navigation/native"
+
 import { observer } from "mobx-react-lite"
 import { BulletItem, Button, Header, Text, Screen, Wallpaper } from "../../components"
 import { color, spacing } from "../../theme"
 // import CREATE_STORY from '../../graphql/story/mutation/createStory.js'
 import { useMutation, gql } from "@apollo/client"
+import { ReactNativeFile } from 'apollo-upload-client'
 export const logoIgnite = require("./logo-ignite.png")
 export const heart = require("./heart.png")
-
 const CREATE_STORY = gql`
          mutation createStory($name: String!, $type: String!, $uri: String!) {
            createStory(name: $name, type: $type, uri: $uri) {
@@ -24,6 +25,17 @@ const CREATE_STORY = gql`
          }
        `
 
+const UPLOAD_FILE = gql`
+mutation uploadFile($file: Upload!) {
+  uploadFile(file: $file) {
+    filename
+    mimetype
+    encoding
+    signedRequest
+    url
+  }
+}
+`
 const FULL: ViewStyle = { flex: 1 }
 const CONTAINER: ViewStyle = {
   backgroundColor: color.transparent,
@@ -96,6 +108,21 @@ export const DemoScreen: Component = observer(function DemoScreen() {
   const navigation = useNavigation()
   const goBack = () => navigation.goBack()
   const [createStory] = useMutation(CREATE_STORY)
+  const [uploadFile] = useMutation(UPLOAD_FILE)
+
+  function uploadImage(file, signedRequest, url) {
+    fetch(signedRequest, {
+      method: "PUT",
+      body: file,
+      headers: {
+        'Content-type': "image/jpeg"
+      }
+    }).then((res) => {
+      console.log(res, url)
+    }).catch((e) => {
+      console.log(e)
+    })
+  }
 
   const _pickImage = async () => {
     try {
@@ -112,32 +139,21 @@ export const DemoScreen: Component = observer(function DemoScreen() {
         quality: 1,
       })
 
-      const localUri = result.uri
-      const filename = localUri.split('/').pop()
-      const match = /\.(\w+)$/.exec(filename)
-      const type = match ? `image/${match[1]}` : `image`
+      const filename = result.uri.split('/').pop()
 
-      const formData = new FormData()
-      formData.append('photo', {
-        uri: localUri,
+      const file = new ReactNativeFile({
+        uri: result.uri,
         name: filename,
-        type: type,
+        type: result.type
       })
 
-      console.log(formData)
+      const { data } = await uploadFile({
+        variables: {
+          file
+        }
+      })
 
-      const options = {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-
-      fetch('http://localhost:4000/image-upload', options)
-      // fetch('https://sofam-api.ikey2244.vercel.app/upload', options)
-      // console.log("_pickImage -> data", data)
+      uploadImage(file, data.uploadFile.signedRequest, data.uploadFile.url)
     } catch (E) {
       console.log(E, 'error is here!')
     }

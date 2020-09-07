@@ -15,7 +15,8 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.webdevike.sofam",
+      "supportsTablet": false
     },
     "web": {
       "favicon": "./assets/favicon.png"

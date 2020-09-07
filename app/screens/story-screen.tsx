@@ -1,9 +1,8 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, Button } from "react-native"
+import { ViewStyle, View, Button, TouchableOpacity } from "react-native"
 import { Screen, Text } from "../components"
-// import { useNavigation } from "@react-navigation/native"
-// import { useStores } from "../models"
+import { AntDesign } from '@expo/vector-icons'
 import { color } from "../theme"
 import { ImageSlider } from "../components/Slider/ImageSlider"
 import { CommonActions, useNavigation } from "@react-navigation/native"
@@ -29,7 +28,9 @@ export const StoryScreen: Component = observer(function StoryScreen({ route }) {
   return (
     <View style={IMAGE_OVERLAY_CONTAINER as ViewStyle}>
       <ImageSlider entries={route.params.stories}/>
-      <Button title="Press" onPress={() => navigation.dispatch(CommonActions.goBack())}/>
+      <TouchableOpacity onPress={() => navigation.dispatch(CommonActions.goBack())} style={{ position: "absolute", right: 25, top: 75, backgroundColor: "lightgray", borderRadius: "100%", width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <AntDesign name="close" size={15} color="black" />
+      </TouchableOpacity>
     </View>
   )
 })

@@ -9,6 +9,12 @@ import { createStackNavigator } from "@react-navigation/stack"
 import { HomeScreen, DemoScreen, ProfileScreen } from "../screens"
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { AntDesign } from '@expo/vector-icons'
+import BottomSheet from 'reanimated-bottom-sheet'
+import { Text, View, TouchableOpacity, ViewStyle, TextStyle } from "react-native"
+import * as Haptics from 'expo-haptics'
+import { color } from '../theme/color'
+import { Button } from "../components"
+import { spacing } from "../theme"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -31,43 +37,96 @@ export type PrimaryParamList = {
 const Tab = createBottomTabNavigator()
 // const Stack = createStackNavigator<PrimaryParamList>()
 
-export function PrimaryNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
-          let iconName
-          if (route.name == 'home') {
-            iconName = 'home'
-          } else if (route.name == 'demo') {
-            iconName = 'plussquareo'
-          } else if (route.name == 'profile') {
-            iconName = 'user'
-          }
+const DEMO: ViewStyle = {
+  paddingVertical: spacing[4],
+  paddingHorizontal: spacing[4],
+  backgroundColor: "#5D2555",
+  marginTop: 20
+}
+const BOLD: TextStyle = { fontWeight: "bold" }
+const DEMO_TEXT: TextStyle = {
+  ...BOLD,
+  fontSize: 13,
+  letterSpacing: 2,
+}
 
-          return <AntDesign name={iconName} size={size} color={color} />
+export function PrimaryNavigator(props) {
+  const renderContent = () => (
+    <View
+      style={{
+        backgroundColor: 'white',
+        padding: 16,
+        height: 250,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-evenly",
+      }}
+    >
+      <View style={{ width: 100, height: 5, borderRadius: 10, backgroundColor: 'lightgray', marginTop: -40 }}></View>
+      <Button
+        style={DEMO}
+        textStyle={DEMO_TEXT}
+        tx="modal.createStory"
+      />
+      <Button
+        style={DEMO}
+        textStyle={DEMO_TEXT}
+        tx="modal.createMemory"
+      />
+    </View>
+  )
+  const sheetRef = React.useRef(null)
+  return (
+    <>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ color, size }) => {
+            let iconName
+            if (route.name == 'home') {
+              iconName = 'home'
+            } else if (route.name == 'demo') {
+              iconName = 'plussquareo'
+            } else if (route.name == 'profile') {
+              iconName = 'user'
+            }
+
+            return <AntDesign name={iconName} size={size} color={color} />
+          }
+        })}
+        tabBarOptions={{
+          showLabel: false,
+          activeTintColor: 'tomato',
+          inactiveTintColor: 'gray',
+          style: {
+            display: "none"
+          }
+        }}>
+        <Tab.Screen name="home" component={HomeScreen} />
+        <Tab.Screen name="demo" component={DemoScreen} />
+        <Tab.Screen name="profile" component={ProfileScreen} />
+      </Tab.Navigator>
+
+      <View style={{ flexDirection: "row", height: 75, justifyContent: "space-evenly", alignItems: "center", width: "100%", backgroundColor: "white" }}>
+        <TouchableOpacity onPress={() => props.navigation.navigate("home")}><AntDesign name="home" size={25} color="#5D2555" /></TouchableOpacity>
+        <TouchableOpacity onPress={() => {
+          sheetRef.current.snapTo(0)
+          Haptics.notificationAsync()
         }
-      })}
-      tabBarOptions={{
-        showLabel: false,
-        activeTintColor: 'tomato',
-        inactiveTintColor: 'gray',
-      }}>
-      <Tab.Screen name="home" component={HomeScreen} />
-      <Tab.Screen name="demo" component={DemoScreen} />
-      <Tab.Screen name="profile" component={ProfileScreen} />
-    </Tab.Navigator>
+        } style={{ marginBottom: 25, backgroundColor: color.primaryDarker, borderRadius: "100%", width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
+
+          <AntDesign name="plus" size={25} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => props.navigation.navigate("profile")}><AntDesign name="user" size={25} color="#5D2555" /></TouchableOpacity>
+      </View>
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={[250, 0]}
+        initialSnap={1}
+        borderRadius={10}
+        renderContent={renderContent}
+      />
+    </>
   )
 }
 
-/**
- * A list of routes from which we're allowed to leave the app when
- * the user presses the back button on Android.
- *
- * Anything not on this list will be a standard `back` action in
- * react-navigation.
- *
- * `canExit` is used in ./app/app.tsx in the `useBackButtonHandler` hook.
- */
-const exitRoutes = ["welcome"]
 export const canExit = (routeName: string) => exitRoutes.includes(routeName)

@@ -83,10 +83,8 @@ const AuthStack = () => {
 
 export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<React.ComponentProps<typeof NavigationContainer>>>((props, ref) => {
   const { data } = useQuery(IS_LOGGED_IN)
-  console.log("data", data)
 
   const user = data?.isLoggedIn
-  console.log("user", user)
 
   return (
     <NavigationContainer {...props} ref={ref}>

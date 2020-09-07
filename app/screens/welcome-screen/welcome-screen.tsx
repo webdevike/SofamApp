@@ -121,9 +121,7 @@ export const WelcomeScreen: Component = observer(function WelcomeScreen() {
   const { data: loggedIn } = useQuery(IS_LOGGED_IN)
 
   const [password, onPasswordChange] = React.useState("")
-  // console.log("WelcomeScreen -> password", password)
   const [email, onEmailChange] = React.useState("")
-  // console.log("WelcomeScreen -> email", email)
 
   // TODO image picker
   // const _pickImage = async () => {

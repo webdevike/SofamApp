@@ -3,7 +3,6 @@ import "./utils/ignore-warnings"
 import React, { useState, useEffect, useRef, FunctionComponent as Component } from "react"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { SafeAreaProvider, initialWindowSafeAreaInsets } from "react-native-safe-area-context"
-import { createUploadLink } from 'apollo-upload-client'
 import { initFonts } from "./theme/fonts"
 import * as storage from "./utils/storage"
 import {
@@ -14,7 +13,9 @@ import {
   useNavigationPersistence,
 } from "./navigation"
 import { RootStore, RootStoreProvider, setupRootStore } from "./models"
-import { ApolloClient, ApolloProvider, gql, createHttpLink } from "@apollo/client"
+import { ApolloClient, ApolloProvider, gql, ApolloLink } from "@apollo/client"
+import { onError } from "@apollo/client/link/error"
+import { createUploadLink } from 'apollo-upload-client'
 import { setContext } from '@apollo/client/link/context'
 import { cache } from './cache'
 // This puts screens in a native ViewController or Activity. If you want fully native
@@ -22,35 +23,6 @@ import { cache } from './cache'
 // https://github.com/kmagiera/react-native-screens#using-native-stack-navigator
 import { enableScreens } from "react-native-screens"
 import { loadString } from "./utils/storage"
-
-// const s3 = new AWS.S3({
-//   accessKeyId: "minioadmin",
-//   secretAccessKey: "minioadmin",
-//   endpoint: "http://192.168.1.196:9001",
-//   s3ForcePathStyle: true,
-//   signatureVersion: "v4"
-// })
-// https://www.digitalocean.com/community/questions/upload-aws-s3-getsignedurl-with-correct-permissions-and-content-type
-// s3.getSignedUrl
-
-// s3.getSignedUrl('putObject', {
-//   Bucket: 'sofam',
-//   ContentType: type,
-//   ACL: 'public-read',
-//   Key: 'random-key'
-// }, (error, url) => {
-//   if (error) {
-//     console.log(error)
-//   }
-//   console.log('KEY:', key)
-//   console.log('URL:', url)
-//   res.send({ key, url })
-// })
-
-// s3.listObjects({ Bucket: "sofam" }, (err, data) => {
-//   console.log(err, 'this is the error')
-//   console.log(data, 'this is the data')
-// })
 
 enableScreens()
 
@@ -72,6 +44,7 @@ const App: Component<{}> = () => {
 
   const uploadLink = createUploadLink({
     uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
+    // uri: 'https://infinite-wave-95577.herokuapp.com/graphql'
     // uri: 'http://localhost:4000/graphql'
   })
 
@@ -84,12 +57,12 @@ const App: Component<{}> = () => {
       }
     }
   })
-
   const checkAuth = async () => {
+    const token = await loadString("@authToken")
     cache.writeQuery({
       query: gql`{isLoggedIn @client}`,
       data: {
-        isLoggedIn: await !!loadString("@authToken"),
+        isLoggedIn: !!token,
       },
     })
   }
@@ -109,9 +82,14 @@ const App: Component<{}> = () => {
   // with your own loading component if you wish.
   if (!rootStore) return null
 
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    // console.log("errorLink -> graphQLErrors", graphQLErrors)
+    // console.log("errorLink -> networkError", networkError)
+  })
+
   const client = new ApolloClient({
-    link: authLink.concat(uploadLink),
-    cache
+    link: ApolloLink.from([authLink, errorLink, uploadLink]),
+    cache,
   })
 
   // otherwise, we're ready to render the app
