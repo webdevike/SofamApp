@@ -13,11 +13,11 @@ import {
   useNavigationPersistence,
 } from "./navigation"
 import { RootStore, RootStoreProvider, setupRootStore } from "./models"
-import { ApolloClient, ApolloProvider, gql, ApolloLink } from "@apollo/client"
+import { ApolloClient, ApolloProvider, gql, ApolloLink, useReactiveVar } from "@apollo/client"
 import { onError } from "@apollo/client/link/error"
 import { createUploadLink } from 'apollo-upload-client'
 import { setContext } from '@apollo/client/link/context'
-import { cache } from './cache'
+import { accessTokenVar, cache } from './cache'
 // This puts screens in a native ViewController or Activity. If you want fully native
 // stack navigation, use `createNativeStackNavigator` in place of `createStackNavigator`:
 // https://github.com/kmagiera/react-native-screens#using-native-stack-navigator
@@ -34,6 +34,7 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 const App: Component<{}> = () => {
   const navigationRef = useRef<NavigationContainerRef>()
   const [rootStore, setRootStore] = useState<RootStore | undefined>(undefined)
+  const loggedIn = useReactiveVar(accessTokenVar)
 
   setRootNavigation(navigationRef)
   useBackButtonHandler(navigationRef, canExit)
@@ -43,9 +44,9 @@ const App: Component<{}> = () => {
   )
 
   const uploadLink = createUploadLink({
-    uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
+    // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
     // uri: 'https://infinite-wave-95577.herokuapp.com/graphql'
-    // uri: 'http://localhost:4000/graphql'
+    uri: 'http://localhost:4000/graphql'
   })
 
   const authLink = setContext(async (_, { headers }) => {
@@ -57,23 +58,32 @@ const App: Component<{}> = () => {
       }
     }
   })
-  const checkAuth = async () => {
+
+  const setToken = async () => {
     const token = await loadString("@authToken")
+    accessTokenVar(!!token)
+  }
+  const checkAuth = async () => {
     cache.writeQuery({
       query: gql`{isLoggedIn @client}`,
       data: {
-        isLoggedIn: !!token,
+        isLoggedIn: loggedIn,
       },
     })
   }
 
   // Kick off initial async loading actions, like loading fonts and RootStore
   useEffect(() => {
+    let isMounted = true
     ; (async () => {
-      await checkAuth()
-      await initFonts()
-      setupRootStore().then(setRootStore)
+      if (isMounted) {
+        await setToken()
+        await checkAuth()
+        await initFonts()
+        setupRootStore().then(setRootStore)
+      }
     })()
+    return () => { isMounted = false }
   }, [])
 
   // Before we show the app, we have to wait for our state to be ready.
@@ -83,8 +93,8 @@ const App: Component<{}> = () => {
   if (!rootStore) return null
 
   const errorLink = onError(({ graphQLErrors, networkError }) => {
-    // console.log("errorLink -> graphQLErrors", graphQLErrors)
-    // console.log("errorLink -> networkError", networkError)
+    console.log("errorLink -> graphQLErrors", graphQLErrors)
+    console.log("errorLink -> networkError", networkError)
   })
 
   const client = new ApolloClient({

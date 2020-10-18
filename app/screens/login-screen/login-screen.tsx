@@ -1,12 +1,17 @@
 import React, { FunctionComponent as Component, useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform } from "react-native"
+import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native"
 import { Button, Text } from "../../components"
 import { color, spacing, typography } from "../../theme"
-import { gql, useMutation } from "@apollo/client"
+import { gql, useMutation, useReactiveVar } from "@apollo/client"
 import { saveString, loadString } from "../../utils/storage"
-import { cache } from '../../cache'
+import { accessTokenVar, cache } from '../../cache'
+import { useNavigation } from "@react-navigation/native"
 const patternBg = require("./pattern.png")
+
+interface Props {
+  navigation: any
+}
 
 // Styles
 const TEXT: TextStyle = {
@@ -16,6 +21,12 @@ const TEXT: TextStyle = {
 
 const TEXT_CONTAINER: ViewStyle = {
   marginBottom: spacing[8]
+}
+
+const BOTTOM_TEXT_CONTAINER: ViewStyle = {
+  display: "flex",
+  flexDirection: "row",
+  marginTop: spacing[3]
 }
 
 const HEADING: TextStyle = {
@@ -39,12 +50,6 @@ const FULL: ViewStyle = {
   alignItems: "stretch",
   justifyContent: "center",
   backgroundColor: "#1F1944",
-}
-
-const BACKGROUND_IMAGE: ImageStyle = {
-  flex: 1,
-  resizeMode: "cover",
-  justifyContent: "center",
 }
 
 const CONTAINER: ViewStyle = {
@@ -86,11 +91,11 @@ const IS_LOGGED_IN = gql`
   }
 `
 
-export const LoginScreen: Component = observer(function LoginScreen() {
+export const LoginScreen: Component<Props> = observer(function LoginScreen(props) {
   const [login] = useMutation(LOGIN)
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const loggedIn = useReactiveVar(accessTokenVar)
   return (
     <View style={FULL}>
       <KeyboardAvoidingView
@@ -129,14 +134,21 @@ export const LoginScreen: Component = observer(function LoginScreen() {
               },
             })
             saveString("@authToken", data.login)
+            accessTokenVar(true)
             cache.writeQuery({
               query: IS_LOGGED_IN,
               data: {
-                isLoggedIn: Boolean(loadString("@authToken")),
+                isLoggedIn: loggedIn
               },
             })
           }}
         />
+        <View style={BOTTOM_TEXT_CONTAINER}>
+          <Text style={{ marginRight: spacing[1] }}>Don't have an account?</Text>
+          <TouchableOpacity onPress={() => props.navigation.navigate("register")}>
+            <Text style={{ fontWeight: "bold", fontSize: 16 }}>Signup</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   )

@@ -18,8 +18,7 @@ const IMAGE_OVERLAY_CONTAINER = {
   top: 0,
   width: "100%",
   height: "100%",
-  flex: 1,
-  backgroundColor: "black",
+  backgroundColor: "red",
   zIndex: 10,
 } as React.CSSProperties
 

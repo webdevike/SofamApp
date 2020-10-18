@@ -12,18 +12,18 @@ import { ReactNativeFile } from 'apollo-upload-client'
 export const logoIgnite = require("./logo-ignite.png")
 export const heart = require("./heart.png")
 const CREATE_STORY = gql`
-         mutation createStory($name: String!, $type: String!, $uri: String!) {
-           createStory(name: $name, type: $type, uri: $uri) {
-             id
-             createdAt
-             file {
-               name
-               type
-               uri
-             }
-           }
-         }
-       `
+  mutation createStory($name: String!, $type: String!, $uri: String!) {
+    createStory(name: $name, type: $type, uri: $uri) {
+      id
+      createdAt
+      file {
+        name
+        type
+        uri
+      }
+    }
+  }
+`
 
 const UPLOAD_FILE = gql`
 mutation uploadFile($file: Upload!) {

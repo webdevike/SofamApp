@@ -31,7 +31,7 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
       >
         <Button
           title="Open Bottom Sheet"
-          onPress={Login}
+          onPress={() => sheetRef.current.snapTo(0)}
         />
       </View>
       <BottomSheet

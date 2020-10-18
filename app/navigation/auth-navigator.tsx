@@ -6,7 +6,7 @@
  */
 import React from "react"
 import { createStackNavigator } from "@react-navigation/stack"
-import { LoginScreen } from "../screens"
+import { LoginScreen, RegisterScreen } from "../screens"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -21,7 +21,8 @@ import { LoginScreen } from "../screens"
  *   https://reactnavigation.org/docs/typescript#type-checking-the-navigator
  */
 export type AuthParamList = {
-  login: undefined
+  login: undefined,
+  register: undefined
 }
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
@@ -36,6 +37,7 @@ export function AuthNavigator() {
       }}
     >
       <Stack.Screen name="login" component={LoginScreen} />
+      <Stack.Screen name="register" component={RegisterScreen} />
     </Stack.Navigator>
   )
 }
