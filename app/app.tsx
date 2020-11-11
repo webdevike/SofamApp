@@ -18,13 +18,27 @@ import { onError } from "@apollo/client/link/error"
 import { createUploadLink } from 'apollo-upload-client'
 import { setContext } from '@apollo/client/link/context'
 import { accessTokenVar, cache } from './cache'
-// This puts screens in a native ViewController or Activity. If you want fully native
-// stack navigation, use `createNativeStackNavigator` in place of `createStackNavigator`:
-// https://github.com/kmagiera/react-native-screens#using-native-stack-navigator
+import * as firebase from 'firebase'
+import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
 import { loadString } from "./utils/storage"
 
 enableScreens()
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAq-F_nrtxrHYHRA7q534GQQ6RPJloBukM",
+  authDomain: "sofam-448ea.firebaseapp.com",
+  databaseURL: "https://sofam-448ea.firebaseio.com",
+  projectId: "sofam-448ea",
+  storageBucket: "sofam-448ea.appspot.com",
+  messagingSenderId: "910753072077",
+  appId: "1:910753072077:web:2538140ccf4efa85d97a84",
+  measurementId: "G-1RLFNSRZRH"
+}
+
+firebase.initializeApp(firebaseConfig)
+
+export const firestore = firebase.firestore()
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 

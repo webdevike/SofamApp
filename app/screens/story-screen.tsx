@@ -18,8 +18,8 @@ const IMAGE_OVERLAY_CONTAINER = {
   top: 0,
   width: "100%",
   height: "100%",
-  backgroundColor: "red",
   zIndex: 10,
+  backgroundColor: color.palette.black
 } as React.CSSProperties
 
 export const StoryScreen: Component = observer(function StoryScreen({ route }) {
@@ -27,7 +27,7 @@ export const StoryScreen: Component = observer(function StoryScreen({ route }) {
   return (
     <View style={IMAGE_OVERLAY_CONTAINER as ViewStyle}>
       <ImageSlider entries={route.params.stories}/>
-      <TouchableOpacity onPress={() => navigation.dispatch(CommonActions.goBack())} style={{ position: "absolute", right: 25, top: 75, backgroundColor: "lightgray", borderRadius: "100%", width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <TouchableOpacity onPress={() => navigation.dispatch(CommonActions.goBack())} style={{ position: "absolute", right: 25, top: 125, backgroundColor: "lightgray", borderRadius: "100%", width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <AntDesign name="close" size={15} color="black" />
       </TouchableOpacity>
     </View>

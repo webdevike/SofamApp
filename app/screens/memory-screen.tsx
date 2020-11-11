@@ -1,12 +1,12 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
 import { ViewStyle, Image, View, ImageStyle, Dimensions, FlatList, ActivityIndicator, SafeAreaView, Text } from "react-native"
-import { MemoryCard, Screen } from "../components"
+import { MemoryCard, ProgressiveImage, Screen } from "../components"
 import { color } from "../theme"
 import { gql, useQuery } from "@apollo/client"
 import { StatusBar } from 'expo-status-bar'
 import { Video } from "expo-av"
-
+import SkeletonContent from 'react-native-skeleton-content';
 
 const dimensions = Dimensions.get('window')
 const imageWidth = dimensions.width
@@ -53,7 +53,12 @@ const renderMemories = ({ item }) => {
       )
     } else {
       return (
-        <Image style={IMAGE_MEMORY} source={{ uri: item?.thumbnail}}/>
+        <ProgressiveImage 
+          thumbnailSource={{ uri: `https://images.pexels.com/photos/671557/pexels-photo-671557.jpeg?w=50&buster=${Math.random()}`}}
+          source={{ uri: item?.thumbnail }}
+          style={IMAGE_MEMORY} 
+        />
+      
       )
     }
   }
@@ -72,15 +77,12 @@ export const MemoryScreen: Component = observer(function MemoryScreen() {
       {
         memoryIsLoading
           ? <ActivityIndicator />
-          : 
-          <>
-            <FlatList
-              data={allMemories.memories}
-              renderItem={renderMemories}
-              keyExtractor={item => item.id}
-              showsVerticalScrollIndicator={false}
-            />
-        </>
+          : <FlatList
+            data={allMemories?.memories}
+            renderItem={renderMemories}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+          />
       }
       <StatusBar style="dark" />
     </SafeAreaView>

@@ -1,27 +1,22 @@
-import React, { FunctionComponent as Component } from "react"
+import React, { FunctionComponent as Component, useState } from "react"
 import { observer } from "mobx-react-lite"
 import {
   SafeAreaView,
   FlatList,
-  Image,
   ImageStyle,
   ViewStyle,
   View,
   Text,
-  TouchableWithoutFeedback,
-  Dimensions,
-  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+  TextStyle,
 } from "react-native"
 import { Video } from 'expo-av'
-import { spacing } from "../../theme"
-import { gql, useQuery, useReactiveVar } from "@apollo/client"
+import { color, spacing, typography } from "../../theme"
+import { gql, useQuery } from "@apollo/client"
 import { useNavigation } from "@react-navigation/native"
-import styled from 'styled-components/native'
-import { accessTokenVar } from "../../cache"
-
-const StyledView = styled.View`
-  flex: 1;
-`
+import { ProgressiveImage } from "../../components"
+import SkeletonContent from "react-native-skeleton-content"
 
 const USERS = gql`
   {
@@ -35,8 +30,15 @@ const USERS = gql`
   }
 }
 `
-const dimensions = Dimensions.get('window')
-const imageWidth = dimensions.width
+
+const ROOT: ViewStyle = {
+  flex: 1,
+}
+
+const VIDEO: ViewStyle = {
+  height: 250,
+  flex: 1,
+}
 
 const IMAGE: ImageStyle = {
   height: 250,
@@ -44,90 +46,43 @@ const IMAGE: ImageStyle = {
   borderRadius: 20,
 }
 
-const IMAGE_WITH_STORY: ImageStyle = {
-  height: 250,
-  flex: 1,
-  borderRadius: 10,
-}
-
 const IMAGE_CONTAINER: ViewStyle = {
   flex: 1,
-  margin: spacing[2],
+  marginLeft: spacing[2],
+  marginRight: spacing[2],
 }
 
-const IMAGE_WRAPPER: ViewStyle = {
-  // backgroundColor: "green",
-  padding: spacing[1],
+const OVERLAY: ViewStyle = {
+  height: '100%',
+  position: "absolute",
+  bottom: 0,
+  right: 0,
+  left: 0,
+  backgroundColor: 'rgba(0, 0, 0, .25)',
   borderRadius: 20,
-  borderWidth: 4,
-  borderColor: "#F9337C",
-  flex: 1,
+  justifyContent: 'flex-end'
 }
 
-// fake data
-const users = [
-  {
-    id: "1",
-    name: "Isaac",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Kathry,n-Rose",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  },
-  {
-    id: "3",
-    name: "Josh",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  },
-  {
-    id: "4",
-    name: "Sarah",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  },
-  {
-    id: "5",
-    name: "Luke",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  },
-  {
-    id: "6",
-    name: "Anna",
-    stories: [
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      },
-      {
-        url: "https://api.adorable.io/avatars/285/abott@adorable.png"
-      }
-    ]
-  }
-]
+const OVERLAY_TEXT: TextStyle = {
+  color: color.palette.white,
+  fontFamily: typography.primary,
+  fontWeight: '700',
+  fontSize: 18,
+  margin: spacing[4],
+}
 
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const { loading, data: userAndStories } = useQuery(USERS)
+  const { loading, data: userAndStories, refetch } = useQuery(USERS)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = React.useCallback(() => {
+    refetch()
+    if (loading) {
+      setRefreshing(true)
+    }
+    setRefreshing(false)
+  }, [])
 
   const renderUsers = ({ item }) => {
     const uri = item.stories[0]?.url
@@ -142,56 +97,93 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             resizeMode="contain"
             shouldPlay
             isLooping
-            style={{
-              height: 250,
-              flex: 1,
-            }}
+            style={VIDEO}
           />
         )
       } else if (uri?.includes('.jpg' || '.jpeg')) {
         return (
-          <Image style={uri ? IMAGE_WITH_STORY : IMAGE} source={{ uri }} />
+          <ProgressiveImage
+            thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
+            source={{ uri }}
+            style={IMAGE}
+          />
         )
-      } else {
-        return <Image style={uri ? IMAGE_WITH_STORY : IMAGE} source={{ uri: "https://api.adorable.io/avatars/285/abott@adorable.png" }} />
       }
     }
     return (
       <View style={IMAGE_CONTAINER}>
-        <TouchableWithoutFeedback onPress={() => {
-          if (item.stories[0]?.url) {
-            navigation.navigate('story', { ...item })
-          }
-        }
-        }>
-
-          <View style={item.stories[0]?.url ? IMAGE_WRAPPER : IMAGE}>
-            {renderFirstStory()}
+        <TouchableOpacity
+          onPress={() => uri ? navigation.navigate('story', { ...item }) : null}>
+          {renderFirstStory()}
+          <View style={OVERLAY}>
+            <Text style={OVERLAY_TEXT}>{item.name}</Text>
           </View>
-        </TouchableWithoutFeedback>
-        <Text style={{ textAlign: 'center', marginTop: spacing[2] }}>{item.name}</Text>
+        </TouchableOpacity>
       </View>
     )
   }
 
-  return (
-    <StyledView>
-
-      <SafeAreaView >
+  const firstLayout = [
+    {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      flex: 1,
+      justifyContent: 'center',
+      children: [
         {
-          loading
-            ? <ActivityIndicator />
-            : <>
-              <FlatList
-                data={userAndStories.users}
-                renderItem={renderUsers}
-                keyExtractor={item => item.id}
-                showsHorizontalScrollIndicator={false}
-                numColumns={2}
-              />
-            </>
-        }
-      </SafeAreaView>
-    </StyledView>
+          margin: spacing[2],
+          // flex: 1,
+          height: 250,
+          width: "45%"
+        },
+        {
+          margin: spacing[2],
+          // flex: 1,
+          height: 250,
+          width: "45%"
+        },
+        {
+          margin: spacing[2],
+          height: 250,
+          width: "45%"
+        },
+        {
+          margin: spacing[2],
+          height: 250,
+          width: "45%"
+        },
+        {
+          margin: spacing[2],
+          height: 250,
+          width: "45%"
+        },
+        {
+          margin: spacing[2],
+          height: 250,
+          width: "45%"
+        },
+      ]
+    },
+  ]
+
+  return (
+    <SafeAreaView style={ROOT}>
+      {
+        loading
+          ? <SkeletonContent
+            isLoading={true}
+            layout={firstLayout}
+          />
+          : <FlatList
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            data={userAndStories?.users}
+            renderItem={renderUsers}
+            keyExtractor={item => item.id}
+            showsHorizontalScrollIndicator={false}
+            numColumns={2}
+          />
+
+      }
+    </SafeAreaView>
   )
 })

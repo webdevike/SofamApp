@@ -1,3 +1,5 @@
+require("../app/components/StoryCard/StoryCard.story")
+require("../app/components/ProgressiveImage/ProgressiveImage.story")
 require("../app/components/MemoryCard/MemoryCard.story")
 require("../app/components/text/text.story")
 require("../app/components/button/button.story")

@@ -2,7 +2,7 @@
   "expo": {
     "name": "SofamApp",
     "slug": "SofamApp",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -14,6 +14,9 @@
       "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": ["**/*"],
+    "android": {
+      "useNextNotificationsApi": true
+    },
     "ios": {
       "bundleIdentifier": "com.webdevike.sofam",
       "supportsTablet": false

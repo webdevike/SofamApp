@@ -1,11 +1,14 @@
 import React, { Component } from "react"
 import Carousel from "react-native-snap-carousel"
-import { View, Image, ImageStyle, Dimensions } from "react-native"
+import { View, Image, ImageStyle, Dimensions, Text } from "react-native"
 import { Video } from "expo-av"
 
+const dimensions = Dimensions.get('window')
+const imageWidth = dimensions.width
+
 const IMAGE_OVERLAY: ImageStyle = {
-  height: "100%",
-  width: "100%"
+  height: 550,
+  width: imageWidth
 }
 
 export class ImageSlider extends Component {
@@ -24,7 +27,7 @@ export class ImageSlider extends Component {
             shouldPlay
             isLooping
             style={{
-              height: "100%",
+              height: 550,
             }}
           />
         )
@@ -35,22 +38,29 @@ export class ImageSlider extends Component {
       }
     }
     return (
-      <View style={{ flex: 1 }}>
-        {renderVidoeOrThumbnail()}
-      </View>
+      <>
+        { renderVidoeOrThumbnail() }
+      </>
     )
   }
 
   render() {
     return (
-      <Carousel
-        ref={c => { this._carousel = c }}
-        data={this.props.entries}
-        layout={'tinder'}
-        renderItem={this._renderItem}
-        sliderWidth={500}
-        itemWidth={500}
-      />
+      <View style={{
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: "center"
+      }}>
+        <Carousel
+          ref={c => { this._carousel = c }}
+          data={this.props.entries}
+          renderItem={this._renderItem}
+          sliderWidth={imageWidth}
+          itemWidth={imageWidth}
+        />
+        {/* <Text>Hello?</Text> */}
+      </View>
     )
   }
 }
