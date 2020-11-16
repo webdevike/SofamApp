@@ -36,6 +36,7 @@
     "aws-sdk": "^2.734.0",
     "expo": "^38.0.0",
     "expo-av": "~8.2.1",
+    "expo-camera": "~8.3.1",
     "expo-haptics": "~8.2.1",
     "expo-image-picker": "~8.3.0",
     "expo-linear-gradient": "~8.2.1",

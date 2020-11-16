@@ -47,10 +47,11 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
 }
 
 const CREATE_MEMORY = gql`
-mutation createMemory($file: Upload!, $title: String!, $location: String) {
-  createMemory(file: $file, title: $title, location: $location) {
+mutation createMemory($file: Upload!, $title: String!, $location: String, $description: String ) {
+  createMemory(file: $file, title: $title, location: $location, description: $description) {
     id
     title
+    description
     thumbnail
     signedRequest
     url
@@ -62,6 +63,7 @@ const MEMORIES = gql`
   memories {
     id
     title
+    description
     location
     thumbnail
   }
@@ -74,7 +76,7 @@ interface FileDataObject {
 export const AddMemoryScreen: Component = function AddMemoryScreen() {
   const [fileData, setFileData] = useState<FileDataObject>()
   const [title, setTitle] = useState("")
-  const [location, setLocation] = useState("")
+  const [description, setDescription] = useState("")
   const [createMemory] = useMutation(CREATE_MEMORY)
   const navigation = useNavigation()
   useEffect(() => {
@@ -99,7 +101,7 @@ export const AddMemoryScreen: Component = function AddMemoryScreen() {
       variables: {
         file,
         title,
-        location
+        description
       },
       // optimisticResponse: {
       //   __typename: 'Mutation',
@@ -161,9 +163,9 @@ export const AddMemoryScreen: Component = function AddMemoryScreen() {
         <TextInput
           placeholderTextColor="#BDBDBD"
           style={TEXT_INPUT}
-          onChangeText={text => setLocation(text)}
-          value={location}
-          placeholder="Location"
+          onChangeText={text => setDescription(text)}
+          value={description}
+          placeholder="Description"
           autoCapitalize="none"
         />
         <Button

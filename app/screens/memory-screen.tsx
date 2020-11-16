@@ -27,6 +27,7 @@ const MEMORIES = gql`
     id
     title
     location
+    description
     createdAt
     thumbnail
   }

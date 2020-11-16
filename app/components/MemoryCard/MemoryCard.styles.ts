@@ -5,7 +5,7 @@ const windowWidth = Dimensions.get("window").width
 
 export const memoryCardStyles = {
   WRAPPER: {
-    height: 180,
+    height: 'auto',
     padding: 16,
     backgroundColor: "white",
     width: windowWidth - 32,

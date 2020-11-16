@@ -1,12 +1,16 @@
-import React, { FunctionComponent as Component, useState } from "react"
+import React, { FunctionComponent as Component, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native"
 import { Button, Text } from "../components"
 import { color, spacing, typography } from "../theme"
 import { gql, useMutation, useReactiveVar } from "@apollo/client"
-import { saveString, loadString } from "../utils/storage"
+import { saveString, loadString, save, load } from "../utils/storage"
 import { StatusBar } from 'expo-status-bar';
 import { accessTokenVar, cache } from '../cache'
+import * as ImagePicker from 'expo-image-picker'
+import { ReactNativeFile } from 'apollo-upload-client'
+import { uploadImage } from "../utils/uploadImage"
+import { Camera } from 'expo-camera';
 
 // Styles
 const TEXT: TextStyle = {
@@ -63,7 +67,6 @@ const TEXT_INPUT: ViewStyle = {
 const LOGIN_BUTTON: ViewStyle = {
   paddingVertical: spacing[4],
   paddingHorizontal: spacing[4],
-  backgroundColor: color.palette.orange,
   borderRadius: 50,
 }
 
@@ -74,24 +77,42 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
   letterSpacing: 2,
 }
 
+const IMAGE_PICKER_CONTAINER: ViewStyle = {
+  marginBottom: spacing[2],
+  flexDirection: "row",
+  justifyContent: "space-between"
+}
+
+const IMAGE_PICKER_BUTTON: ViewStyle = {
+  marginBottom: spacing[4],
+  height: 45,
+  backgroundColor: 'transparent',
+  borderWidth: 2,
+  borderColor: color.palette.white
+}
+
+const IMAGE_PICKER_LABEL: ViewStyle = {
+  ...TEXT,
+  marginBottom: spacing[2]
+}
+
 const REGISTER_MUTATION = gql`
-  mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!) {
+  mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload!) {
     register(data: {
       email: $email, 
       password: $password,
       name: $name,
       secretCode: $secretCode
+      profilePicture: $profilePicture
       }) {
-        id
         accessToken
-        name
+        signedRequest
+        user {
+          id
+          name
+          profilePicture
+        }
       }
-  }
-`
-
-const IS_LOGGED_IN = gql`
-  {
-    isLoggedIn @client
   }
 `
 
@@ -103,6 +124,9 @@ const USERS = gql`
   }
 }
 `
+interface FileDataObject {
+  uri: string
+}
 
 export const RegisterScreen: Component = observer(function RegisterScreen(props) {
   const [register] = useMutation(REGISTER_MUTATION)
@@ -110,7 +134,70 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [secretCode, setsecretCode] = useState("")
-  const loggedIn = useReactiveVar(accessTokenVar)
+  const [fileData, setFileData] = useState<FileDataObject>()
+
+  useEffect(() => {
+    ; (async () => {
+      const fileObject = await load("@fileObject")
+      // the file that was chosen from the pickImage function
+      setFileData(fileObject)
+    })()
+  }, [])
+
+  const pickImage = async (screen: string) => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraRollPermissionsAsync()
+
+      if (permissionResult.granted === false) {
+        alert("Permission to access camera roll is required!")
+        return
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      })
+
+      if (!result.cancelled) {
+        await save("@fileObject", result)
+      }
+    } catch (error) {
+      console.log(error, 'error is here!')
+    }
+  }
+
+  const handleRegister = async () => {
+
+      const filename = fileData.uri.split('/').pop()
+
+      const file = new ReactNativeFile({
+        uri: fileData.uri,
+        name: filename,
+        type: fileData.type
+      })
+      const { data }: any = await register({
+        variables: {
+          email: email,
+          password: password,
+          name,
+          secretCode,
+          profilePicture: file
+        },
+        // update: (proxy, { data: { register } }) => {
+        //   const data = proxy.readQuery({ query: USERS })
+        //   proxy.writeQuery({
+        //     query: USERS,
+        //     data: {
+        //       users: [...data.users, register]
+        //     }
+        //   })
+        // }
+      })
+      uploadImage(file, data.register.signedRequest)
+      saveString("@authToken", data.register.accessToken)
+      accessTokenVar(true)
+  }
   return (
     <View style={FULL}>
       <KeyboardAvoidingView
@@ -155,38 +242,27 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           placeholder="Secret Code"
           autoCapitalize="none"
         />
+          <Text kaynbstyle={IMAGE_PICKER_LABEL}>Upload profile Picture</Text>
+        <View style={IMAGE_PICKER_CONTAINER}>
+          <Button
+            style={IMAGE_PICKER_BUTTON}
+            textStyle={LOGIN_BUTTON_TEXT}
+            text="Take A Picture"
+            onPress={pickImage}
+          />
+          <Button
+            style={IMAGE_PICKER_BUTTON}
+            textStyle={LOGIN_BUTTON_TEXT}
+            text="Pick An Image"
+            onPress={pickImage}
+          />
+        </View>
+        
         <Button
           style={LOGIN_BUTTON}
           textStyle={LOGIN_BUTTON_TEXT}
           text="Signup"
-          onPress={async () => {
-            const { data }: any = await register({
-              variables: {
-                email: email,
-                password: password,
-                name,
-                secretCode
-              },
-              update: (proxy, { data: { register } }) => {
-                const data = proxy.readQuery({ query: USERS })
-                proxy.writeQuery({
-                  query: USERS,
-                  data: {
-                    users: [...data.users, register]
-                  }
-                })
-              }
-            })
-
-            saveString("@authToken", data.register.accessToken)
-            accessTokenVar(true)
-            cache.writeQuery({
-              query: IS_LOGGED_IN,
-              data: {
-                isLoggedIn: loggedIn,
-              },
-            })
-          }}
+          onPress={handleRegister}
         />
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Already have an Account?</Text>

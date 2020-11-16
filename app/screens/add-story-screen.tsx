@@ -95,30 +95,29 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
         url: file.uri,
         file
       },
-      optimisticResponse: {
-        __typename: 'Mutation',
-        createStory: {
-          __typename: "User",
-          id: 5,
-          name: 'Isaac',
-          stories: [
-            {
-              id: Math.round(Math.random() * -1000000),
-              url: "https://api.adorable.io/avatars/285/abott@adorable.png",
-            }
-          ]
-        }
-      },
-      // update: (proxy, { data: { createStory } }) => {
-      //   const data = proxy.readQuery({ query: USERS })
-      //   console.log("handleCreateStory -> data", data)
-      //   proxy.writeQuery({
-      //     query: USERS,
-      //     data: {
-      //       users: [...data.users, createStory]
-      //     }
-      //   })
-      // }
+      // optimisticResponse: {
+      //   __typename: 'Mutation',
+      //   createStory: {
+      //     __typename: "User",
+      //     id: Math.round(Math.random() * -1000000),
+      //     name: 'Isaac',
+      //     stories: [
+      //       {
+      //         id: Math.round(Math.random() * -1000000),
+      //         url: file.uri,
+      //       }
+      //     ]
+      //   }
+      // },
+      update: (proxy, { data: { createStory } }) => {
+        const data = proxy.readQuery({ query: USERS })
+        proxy.writeQuery({
+          query: USERS,
+          data: {
+            users: [...data.users, createStory]
+          }
+        })
+      }
     })
     uploadImage(file, data.createStory.signedRequest)
   }

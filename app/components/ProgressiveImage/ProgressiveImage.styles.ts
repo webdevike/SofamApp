@@ -1,4 +1,5 @@
 import { ViewStyle, TextStyle } from "react-native"
+import { spacing } from "../../theme"
 import { color, typography } from "../theme"
 
 export const progressiveImageStyles = {
@@ -11,6 +12,7 @@ export const progressiveImageStyles = {
   } as ViewStyle,
   container: {
     borderRadius: 20,
+    // marginVertical: spacing[2],
     backgroundColor: '#e1e4e8',
   },
 }

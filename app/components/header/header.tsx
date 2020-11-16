@@ -1,5 +1,5 @@
 import React, { FunctionComponent as Component } from "react"
-import { View, ViewStyle, TextStyle } from "react-native"
+import { View, ViewStyle, TextStyle, Image, ImageStyle } from "react-native"
 import { HeaderProps } from "./header.props"
 import { Button } from "../button/button"
 import { Text } from "../text/text"
@@ -16,6 +16,14 @@ const ROOT: ViewStyle = {
   paddingBottom: spacing[5],
   justifyContent: "flex-start",
 }
+
+const PROFILE_IMAGE: ImageStyle = {
+  marginTop: 7,
+  height: 35,
+  width: 35,
+  borderRadius: 50
+}
+
 const TITLE: TextStyle = { textAlign: "center" }
 const TITLE_MIDDLE: ViewStyle = { flex: 1, justifyContent: "center" }
 const LEFT: ViewStyle = { width: 32 }
@@ -51,7 +59,7 @@ export const Header: Component<HeaderProps> = props => {
       </View>
       {rightIcon ? (
         <Button preset="link" onPress={onRightPress}>
-          <Icon icon={rightIcon} />
+          <Image style={PROFILE_IMAGE} source={{ uri: "https://ui-avatars.com/api/?name=Isaac+Weber" }} />
         </Button>
       ) : (
         <View style={RIGHT} />
