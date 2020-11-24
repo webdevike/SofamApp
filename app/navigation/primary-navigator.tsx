@@ -15,11 +15,11 @@ import BottomSheet from 'reanimated-bottom-sheet'
 import { Text, View, TouchableOpacity, ViewStyle, TextStyle } from "react-native"
 import * as Haptics from 'expo-haptics'
 import { color } from '../theme/color'
-import { Button } from "../components"
+import { Button, Header } from "../components"
 import { spacing } from "../theme"
 import { gql, useMutation } from "@apollo/client"
 import { load, save } from '../utils/storage'
-import { useNavigation } from "@react-navigation/native"
+import { useNavigation, useRoute } from "@react-navigation/native"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -55,6 +55,12 @@ const DEMO_TEXT: TextStyle = {
   letterSpacing: 2,
 }
 
+const HEADER_TITLE: TextStyle = {
+  color: color.palette.black,
+  fontSize: 18,
+  fontWeight: "800"
+}
+
 const UPLOAD_FILE = gql`
 mutation uploadFile($file: Upload!) {
   uploadFile(file: $file) {
@@ -68,21 +74,20 @@ mutation uploadFile($file: Upload!) {
 `
 
 export function PrimaryNavigator(props) {
-  const [uploadFile] = useMutation(UPLOAD_FILE)
+  const route = useRoute()
   const navigation = useNavigation()
-  async function uploadImage(file, signedRequest, url) {
-    try {
-      const data = await fetch(signedRequest, {
-        method: "PUT",
-        body: file,
-        headers: {
-          'Content-type': "image/jpeg"
-        }
-      })
-      console.log("uploadImage -> data", data)
-    } catch (error) {
-      console.log("uploadImage -> error", error)
-    }
+  const currentScreen = route.state?.index
+
+  const goToPage = () => {
+    navigation.navigate('profile')
+  }
+  const getCurrentScreen = () => {
+    if (currentScreen === 0) return 'Stories'
+    if (currentScreen === 2) return 'Profile'
+    if (currentScreen === 3) return 'Memories'
+    if (currentScreen === 4) return 'Group Chat'
+    if (currentScreen === 5) return 'Calendar'
+    else return 'Sofam'
   }
 
   const _pickImage = async (screen: string) => {
@@ -137,25 +142,15 @@ export function PrimaryNavigator(props) {
   const sheetRef = React.useRef(null)
   return (
     <>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            let iconName
-            if (route.name == 'home') {
-              iconName = 'home'
-            } else if (route.name == 'demo') {
-              iconName = 'plussquareo'
-            } else if (route.name == 'profile') {
-              iconName = 'user'
-            }
 
-            return <AntDesign name={iconName} size={size} color={color} />
-          }
-        })}
+      <Header
+        onRightPress={goToPage}
+        headerText={getCurrentScreen()}
+        rightIcon="bullet"
+        titleStyle={HEADER_TITLE}
+      />
+      <Tab.Navigator
         tabBarOptions={{
-          showLabel: false,
-          activeTintColor: 'tomato',
-          inactiveTintColor: 'gray',
           style: {
             display: "none"
           }

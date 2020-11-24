@@ -115,14 +115,10 @@ const REGISTER_MUTATION = gql`
       }
   }
 `
-
-const USERS = gql`
-{
-  users {
-    id
-    name
+const IS_LOGGED_IN = gql`
+  {
+    isLoggedIn @client
   }
-}
 `
 interface FileDataObject {
   uri: string
@@ -135,6 +131,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [name, setName] = useState("")
   const [secretCode, setsecretCode] = useState("")
   const [fileData, setFileData] = useState<FileDataObject>()
+  const loggedIn = useReactiveVar(accessTokenVar)
 
   useEffect(() => {
     ; (async () => {
@@ -176,6 +173,8 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         name: filename,
         type: fileData.type
       })
+      console.log("RegisterScreen -> file", file)
+      
       const { data }: any = await register({
         variables: {
           email: email,
@@ -197,6 +196,12 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
       uploadImage(file, data.register.signedRequest)
       saveString("@authToken", data.register.accessToken)
       accessTokenVar(true)
+      cache.writeQuery({
+        query: IS_LOGGED_IN,
+        data: {
+          isLoggedIn: loggedIn
+        },
+      })
   }
   return (
     <View style={FULL}>
@@ -242,7 +247,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           placeholder="Secret Code"
           autoCapitalize="none"
         />
-          <Text kaynbstyle={IMAGE_PICKER_LABEL}>Upload profile Picture</Text>
+        <Text style={IMAGE_PICKER_LABEL}>Upload profile Picture</Text>
         <View style={IMAGE_PICKER_CONTAINER}>
           <Button
             style={IMAGE_PICKER_BUTTON}

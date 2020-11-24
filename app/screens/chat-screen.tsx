@@ -10,6 +10,7 @@ import { StatusBar } from "expo-status-bar"
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as Permissions from 'expo-permissions';
+import { currentUser } from "../utils/currentUser"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -28,18 +29,9 @@ const MESSAGES_CONTAINER: ViewStyle = {
   flexDirection: "column-reverse",
 }
 
-const MESSAGE: ViewStyle = {
-  borderBottomWidth: 1,
-  borderColor: color.palette.lightGrey,
-  padding: spacing[4],
-  flexDirection: "row",
-  alignItems: "center"
-}
-
 const TEXT: TextStyle = {
-  color: color.palette.black,
   fontFamily: typography.primary,
-  marginLeft: spacing[4]
+  color: 'white',
 }
 
 const BUTTON_TEXT: TextStyle = {
@@ -55,15 +47,52 @@ const TEXT_INPUT: ViewStyle = {
 }
 
 const PROFILE_IMAGE: ImageStyle = {
+  position: "absolute",
+  bottom: 30,
+  zIndex: 10,
   marginTop: 7,
   height: 39,
   width: 39,
   borderRadius: 50
 }
 
+const MESSAGE_ROW: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  marginVertical: spacing[3],
+  marginHorizontal: spacing[4]
+}
+
+const SENT: ViewStyle = {
+  ...MESSAGE_ROW,
+  flexDirection: "row-reverse",
+}
+const RECIEVED: ViewStyle = {
+  ...MESSAGE_ROW
+}
+
+const BUBBLE: ViewStyle = {
+  width: "50%",
+  padding: spacing[4],
+  marginHorizontal: spacing[4],
+  borderRadius: 11,
+}
+
+const BUBBLE_SENT: ViewStyle = {
+  ...BUBBLE,
+  backgroundColor: color.palette.lightGreen,
+}
+
+const BUBBLE_RECIEVED: ViewStyle = {
+  ...BUBBLE,
+  backgroundColor: color.palette.orange,
+}
+
 interface Message {
   id: string,
   text: string,
+  userId: string,
+  profilePicture: string
 }
 
 export const ChatScreen: Component = observer(function ChatScreen() {
@@ -76,6 +105,9 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const dummy = useRef();
+
+  const user = currentUser()
+  const userId = user?.me.id
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
@@ -95,12 +127,15 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   }, []);
 
   const sendMessage = async (e) => {
-    await schedulePushNotification();
+    await schedulePushNotification()
     e.preventDefault()
 
     await messagesRef.add({
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      userId,
+      profilePicture: user?.me.profilePicture,
+      expoPushToken
     }).catch((e) => {
       console.log(e)
     })
@@ -108,14 +143,17 @@ export const ChatScreen: Component = observer(function ChatScreen() {
     setFormValue('')
   }
 
+  
   return (
     <SafeAreaView style={ROOT}>
       <ScrollView ref={ref => {scrollView = ref}} onContentSizeChange={() => scrollView.scrollToEnd({animated: true})}>
         <View style={MESSAGES_CONTAINER}>
-          {messages?.map(msg => 
-            <View style={MESSAGE} key={msg.id}>
-              <Image style={PROFILE_IMAGE} source={{ uri: "https://ui-avatars.com/api/?name=Isaac+Weber" }} />
-              <Text text={msg.text} style={TEXT} />
+          {messages?.map(msg =>
+            <View style={msg.userId ===  userId ? SENT : RECIEVED } key={msg.id}>
+              <Image style={PROFILE_IMAGE} source={{ uri: msg.profilePicture }} />
+              <View style={msg.userId ===  userId ? BUBBLE_SENT : BUBBLE_RECIEVED}>
+                <Text text={msg.text} style={TEXT} />
+              </View>
             </View>
           )}
         </View>
@@ -162,7 +200,6 @@ async function registerForPushNotificationsAsync() {
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(token);
   } else {
     alert('Must use physical device for Push Notifications');
   }

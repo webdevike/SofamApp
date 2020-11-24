@@ -10,13 +10,12 @@ import {
   RefreshControl,
   TouchableOpacity,
   TextStyle,
-  Image,
 } from "react-native"
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
 import { gql, useQuery } from "@apollo/client"
 import { useNavigation } from "@react-navigation/native"
-import { Header, ProgressiveImage } from "../../components"
+import { ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
 
 const USERS = gql`
@@ -37,19 +36,6 @@ const ROOT: ViewStyle = {
   flex: 1,
 }
 
-const HEADER: TextStyle = {
-  paddingTop: spacing[4],
-  paddingBottom: spacing[4] - 1,
-  paddingHorizontal: spacing[6],
-  marginBottom: spacing[2]
-}
-
-const HEADER_TITLE: TextStyle = {
-  color: color.palette.black,
-  fontSize: 18,
-  fontWeight: "800"
-}
-
 const VIDEO: ViewStyle = {
   height: 250,
   flex: 1,
@@ -65,6 +51,7 @@ const IMAGE_CONTAINER: ViewStyle = {
   flex: 1,
   marginLeft: spacing[2],
   marginRight: spacing[2],
+  marginBottom: spacing[4]
 }
 
 const OVERLAY: ViewStyle = {
@@ -92,10 +79,6 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const goBack = () => navigation.goBack()
 
-  const goToPage = () => {
-    navigation.navigate('profile')
-  }
-
   const onRefresh = React.useCallback(() => {
     refetch()
     if (loading) {
@@ -105,7 +88,6 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   }, [])
 
   const renderUsers = ({ item }) => {
-    console.log("renderUsers -> item", item.profilePicture)
     const uri = item.stories[0]?.url
     const renderFirstStory = () => {
       if (uri?.includes('.mov')) {
@@ -134,6 +116,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
     return (
       <View style={IMAGE_CONTAINER}>
         <TouchableOpacity
+          disabled={!uri}
           onPress={() => uri ? navigation.navigate('story', { ...item }) : null}>
           {renderFirstStory() ? renderFirstStory() : <ProgressiveImage
             thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
@@ -193,12 +176,6 @@ export const HomeScreen: Component = observer(function HomeScreen() {
 
   return (
     <SafeAreaView style={ROOT}>
-      <Header
-        onRightPress={goToPage}
-        rightIcon="bullet"
-        style={HEADER}
-        titleStyle={HEADER_TITLE}
-      />
       {
         loading
           ? <SkeletonContent

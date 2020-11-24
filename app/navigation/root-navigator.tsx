@@ -94,9 +94,11 @@ const AuthStack = () => {
 export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<React.ComponentProps<typeof NavigationContainer>>>((props, ref) => {
   const loggedIn = useReactiveVar(accessTokenVar)
   return (
-    <NavigationContainer {...props} ref={ref}>
-      {loggedIn ? <RootStack /> : <AuthStack />}
-    </NavigationContainer>
+    <>
+      <NavigationContainer {...props} ref={ref}>
+        {loggedIn ? <RootStack /> : <AuthStack />}
+      </NavigationContainer>
+    </>
   )
 })
 
