@@ -2,7 +2,7 @@ import React, { FunctionComponent as Component, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Alert, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native"
 import { Button, Screen, Text } from "../components"
-import { color, spacing } from "../theme"
+import { color, spacing, typography } from "../theme"
 import { clear } from "../utils/storage"
 import { accessTokenVar, cache } from "../cache"
 import { useReactiveVar } from "@apollo/client"
@@ -35,7 +35,7 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
 
 const styles = StyleSheet.create({
   emptyDate: {
-    backgroundColor: 'red',
+    backgroundColor: 'white',
     flex: 1,
     height: 15,
     paddingTop: 30
@@ -90,7 +90,7 @@ export const CalendarScreen: Component = observer(function CalendarScreen() {
         style={[styles.item, { height: item.height }]}
         onPress={() => Alert.alert(item.name)}
       >
-        <Text>{item.name} TESTING</Text>
+        <Text>{item.name}TESTING</Text>
       </TouchableOpacity>
     )
   }
@@ -107,26 +107,44 @@ export const CalendarScreen: Component = observer(function CalendarScreen() {
     return r1.name !== r2.name
   }
 
+  const currentDate = new Date()
+  const formattedCurrentDate = currentDate.toISOString().split('T')[0]
+
   return (
     <Agenda
-      testID={testIDs.agenda.CONTAINER}
+      theme={{
+        backgroundColor: '#ffffff',
+        calendarBackground: '#ffffff',
+        textSectionTitleColor: '#b6c1cd',
+        textSectionTitleDisabledColor: '#d9e1e8',
+        selectedDayBackgroundColor: '#00adf5',
+        selectedDayTextColor: '#ffffff',
+        todayTextColor: '#00adf5',
+        dayTextColor: '#2d4150',
+        textDisabledColor: '#d9e1e8',
+        dotColor: '#00adf5',
+        selectedDotColor: '#ffffff',
+        arrowColor: 'orange',
+        disabledArrowColor: '#d9e1e8',
+        monthTextColor: '#00adf5',
+        indicatorColor: '#00adf5',
+        textDayFontFamily: typography.primary,
+        textMonthFontFamily: typography.primary,
+        textDayHeaderFontFamily: typography.primary,
+        textDayFontWeight: '300',
+        textMonthFontWeight: 'bold',
+        textDayHeaderFontWeight: '300',
+        textDayFontSize: 16,
+        textMonthFontSize: 16,
+        textDayHeaderFontSize: 16
+      }}
       items={{
-        '2020-05-15': [{ name: 'item 1 - any js object' }],
-        '2020-05-16': [{ name: 'item 2 - any js object', height: 80 }],
-        '2020-05-17': [],
-        '2020-05-18': [{ name: 'item 3 - any js object' }, { name: 'any js object' }]
+        '2020-11-22': [{ name: 'item 1 - any js object' }],
+        '2020-11-23': [{ name: 'item 3 - any js object' }, { name: 'any js object' }],
+        '2020-11-24': [{ name: 'item 3 - any js object' }, { name: 'any js object' }]
       }}
-      selected={'2020-05-22'}
-      markingType={'period'}
-      markedDates={{
-        '2020-05-15': { marked: true, dotColor: '#50cebb' },
-        '2020-05-16': { marked: true, dotColor: '#50cebb' },
-        '2020-05-21': { startingDay: true, color: '#50cebb', textColor: 'white' },
-        '2020-05-22': { color: '#70d7c7', textColor: 'white' },
-        '2020-05-23': { color: '#70d7c7', textColor: 'white', marked: true, dotColor: 'white' },
-        '2020-05-24': { color: '#70d7c7', textColor: 'white' },
-        '2020-05-25': { endingDay: true, color: '#50cebb', textColor: 'white' },
-      }}
+      selected={formattedCurrentDate}
+      markingType={'simple'}
       renderEmptyDate={renderEmptyDate}
       rowHasChanged={rowHasChanged}
       renderItem={renderItem}
