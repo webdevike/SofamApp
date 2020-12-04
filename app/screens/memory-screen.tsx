@@ -55,11 +55,10 @@ const renderMemories = ({ item }) => {
     } else {
       return (
         <ProgressiveImage 
-          thumbnailSource={{ uri: `https://images.pexels.com/photos/671557/pexels-photo-671557.jpeg?w=50&buster=${Math.random()}`}}
+          thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80`}}
           source={{ uri: item?.thumbnail }}
           style={IMAGE_MEMORY} 
         />
-      
       )
     }
   }

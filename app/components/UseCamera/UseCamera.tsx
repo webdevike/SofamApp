@@ -94,7 +94,7 @@ export const UseCamera: Component<CameraProps> = props => {
                     onPress={__handleFlashMode}
                     style={{
                       backgroundColor: flashMode === 'off' ? '#000' : '#fff',
-                      borderRadius: '50%',
+                      borderRadius: 100,
                       height: 25,
                       width: 25
                     }}
@@ -111,7 +111,7 @@ export const UseCamera: Component<CameraProps> = props => {
                     onPress={__switchCamera}
                     style={{
                       marginTop: 20,
-                      borderRadius: '50%',
+                      borderRadius: 100,
                       height: 25,
                       width: 25
                     }}

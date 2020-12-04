@@ -48,7 +48,6 @@ export const Header: Component<HeaderProps> = props => {
   const header = headerText || (headerTx && translate(headerTx)) || ""
 
   const user = currentUser()
-  console.log("user", user)
 
   return (
     <View style={{ ...ROOT, ...style }}>

@@ -35,14 +35,14 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
 
 const styles = StyleSheet.create({
   emptyDate: {
-    backgroundColor: 'white',
     flex: 1,
     height: 15,
     paddingTop: 30
   },
   item: {
-    backgroundColor: 'green',
-    borderRadius: 5,
+    backgroundColor: '#00adf5',
+    borderBottomWidth: 1,
+    color: color.palette.black,
     flex: 1,
     marginRight: 10,
     marginTop: 17,
@@ -76,21 +76,18 @@ export const CalendarScreen: Component = observer(function CalendarScreen() {
       }
       const newItems = {}
       Object.keys(items).forEach(key => { newItems[key] = items[key] })
-      setItems({
-        items: newItems
-      })
+      setItems(newItems)
     }, 1000)
   }
 
   const renderItem = (item) => {
-    console.log("renderItem -> item", item)
     return (
       <TouchableOpacity
         testID={testIDs.agenda.ITEM}
         style={[styles.item, { height: item.height }]}
         onPress={() => Alert.alert(item.name)}
       >
-        <Text>{item.name}TESTING</Text>
+        <Text>{item.name}</Text>
       </TouchableOpacity>
     )
   }
@@ -112,6 +109,7 @@ export const CalendarScreen: Component = observer(function CalendarScreen() {
 
   return (
     <Agenda
+      testID={testIDs.agenda.CONTAINER}
       theme={{
         backgroundColor: '#ffffff',
         calendarBackground: '#ffffff',
@@ -138,11 +136,8 @@ export const CalendarScreen: Component = observer(function CalendarScreen() {
         textMonthFontSize: 16,
         textDayHeaderFontSize: 16
       }}
-      items={{
-        '2020-11-22': [{ name: 'item 1 - any js object' }],
-        '2020-11-23': [{ name: 'item 3 - any js object' }, { name: 'any js object' }],
-        '2020-11-24': [{ name: 'item 3 - any js object' }, { name: 'any js object' }]
-      }}
+      items={items}
+      loadItemsForMonth={loadItems}
       selected={formattedCurrentDate}
       markingType={'simple'}
       renderEmptyDate={renderEmptyDate}

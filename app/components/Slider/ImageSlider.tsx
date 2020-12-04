@@ -2,6 +2,7 @@ import React, { Component } from "react"
 import Carousel from "react-native-snap-carousel"
 import { View, Image, ImageStyle, Dimensions, Text } from "react-native"
 import { Video } from "expo-av"
+import { ProgressiveImage } from ".."
 
 const dimensions = Dimensions.get('window')
 const imageWidth = dimensions.width
@@ -33,7 +34,11 @@ export class ImageSlider extends Component {
         )
       } else {
         return (
-          <Image style={IMAGE_OVERLAY} source={{ uri: item.url }} />
+          <ProgressiveImage
+            thumbnailSource={{ uri: `https://images.pexels.com/photos/593158/pexels-photo-593158.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260&buster=${Math.random()}` }}
+            source={{ uri: item.url }}
+            style={IMAGE_OVERLAY}
+          />
         )
       }
     }

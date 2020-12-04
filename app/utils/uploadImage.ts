@@ -9,14 +9,13 @@ export async function uploadImage(file: File, signedRequest: string) {
     } else return 'video/mp4'
   }
   try {
-    const data = await fetch(signedRequest, {
+    await fetch(signedRequest, {
       method: "PUT",
       body: file,
       headers: {
-        'Content-type': getFileType()
+        'Content-type': 'image/jpeg'
       }
     })
-    console.log("uploadImage -> data", data)
   } catch (error) {
     console.log("uploadImage -> error", error)
   }

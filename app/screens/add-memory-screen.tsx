@@ -69,7 +69,6 @@ const MEMORIES = gql`
   }
 }
 `
-
 interface FileDataObject {
   uri: string
 }
@@ -103,16 +102,16 @@ export const AddMemoryScreen: Component = function AddMemoryScreen() {
         title,
         description
       },
-      // optimisticResponse: {
-      //   __typename: 'Mutation',
-      //   createMemory: {
-      //     __typename: "Memory",
-      //     id: Math.round(Math.random() * -1000000),
-      //     location: "testing",
-      //     thumbnail: "https://api.adorable.io/avatars/285/abott@adorable.png",
-      //     title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
-      //   }
-      // },
+      optimisticResponse: {
+        __typename: 'Mutation',
+        createMemory: {
+          __typename: "Memory",
+          id: Math.round(Math.random() * -1000000),
+          location: "testing",
+          thumbnail: file.uri,
+          title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
+        }
+      },
       update: (proxy, { data: { createMemory } }) => {
         const data = proxy.readQuery({ query: MEMORIES })
         proxy.writeQuery({

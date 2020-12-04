@@ -60,9 +60,9 @@ const App: Component<{}> = () => {
   )
 
   const uploadLink = createUploadLink({
-    // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
+    uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
     // uri: 'https://infinite-wave-95577.herokuapp.com/graphql'
-    uri: 'http://localhost:4000/graphql'
+    // uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://localhost:4000/graphql'
   })
 
   const authLink = setContext(async (_, { headers }) => {

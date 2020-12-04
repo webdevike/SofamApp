@@ -1,7 +1,7 @@
 import { gql, useMutation } from "@apollo/client"
 import React, { FunctionComponent as Component, useEffect, useState } from "react"
 // import { observer } from "mobx-react-lite"
-import { Image, ImageStyle, TextInput, TextStyle, View, ViewStyle } from "react-native"
+import { Image, ImageStyle, KeyboardAvoidingView, TextInput, TextStyle, View, ViewStyle } from "react-native"
 import { FormRow, Button } from "../components"
 import { color, spacing, typography } from "../theme"
 import { load } from "../utils/storage"
@@ -89,40 +89,43 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
       name: filename,
       type: fileData.type
     })
-
-    const { data } = await createStory({
-      variables: {
-        url: file.uri,
-        file
-      },
-      // optimisticResponse: {
-      //   __typename: 'Mutation',
-      //   createStory: {
-      //     __typename: "User",
-      //     id: Math.round(Math.random() * -1000000),
-      //     name: 'Isaac',
-      //     stories: [
-      //       {
-      //         id: Math.round(Math.random() * -1000000),
-      //         url: file.uri,
-      //       }
-      //     ]
-      //   }
-      // },
-      update: (proxy, { data: { createStory } }) => {
-        const data = proxy.readQuery({ query: USERS })
-        proxy.writeQuery({
-          query: USERS,
-          data: {
-            users: [...data.users, createStory]
-          }
-        })
-      }
-    })
-    uploadImage(file, data.createStory.signedRequest)
+    try {
+      const { data } = await createStory({
+        variables: {
+          url: file.uri,
+          file
+        },
+        // optimisticResponse: {
+        //   __typename: 'Mutation',
+        //   createStory: {
+        //     __typename: "User",
+        //     id: Math.round(Math.random() * -1000000),
+        //     name: 'Isaac',
+        //     stories: [
+        //       {
+        //         id: Math.round(Math.random() * -1000000),
+        //         url: file.uri,
+        //       }
+        //     ]
+        //   }
+        // },
+        update: (proxy, { data: { createStory } }) => {
+          const data = proxy.readQuery({ query: USERS })
+          proxy.writeQuery({
+            query: USERS,
+            data: {
+              users: [...data.users, createStory]
+            }
+          })
+        }
+      })
+      uploadImage(file, data.createStory.signedRequest)
+    } catch (error) {
+      console.log("AddStoryScreen -> error", error)
+    }
   }
   return (
-    <View style={ROOT} >
+    <KeyboardAvoidingView style={ROOT} >
       <Image style={IMAGE_WITH_STORY} source={{ uri: fileData?.uri }} />
       <FormRow preset="top">
         <Button
@@ -132,6 +135,6 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
           onPress={handleCreateStory}
         />
       </FormRow>
-    </View>
+    </KeyboardAvoidingView>
   )
 }

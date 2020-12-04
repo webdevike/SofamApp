@@ -4,7 +4,7 @@
  *
  * You'll likely spend most of your time in this file.
  */
-import React from "react"
+import React, { useEffect } from "react"
 import { createStackNavigator } from "@react-navigation/stack"
 import { HomeScreen, DemoScreen, ProfileScreen, MemoryScreen, ChatScreen, CalendarScreen, AddMemoryScreen } from "../screens"
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -12,7 +12,7 @@ import { AntDesign, Octicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { ReactNativeFile } from 'apollo-upload-client'
 import BottomSheet from 'reanimated-bottom-sheet'
-import { Text, View, TouchableOpacity, ViewStyle, TextStyle } from "react-native"
+import { Text, View, TouchableOpacity, ViewStyle, TextStyle, Platform } from "react-native"
 import * as Haptics from 'expo-haptics'
 import { color } from '../theme/color'
 import { Button, Header } from "../components"
@@ -78,6 +78,17 @@ export function PrimaryNavigator(props) {
   const navigation = useNavigation()
   const currentScreen = route.state?.index
 
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestCameraRollPermissionsAsync()
+        if (status !== 'granted') {
+          alert('Sorry, we need camera roll permissions to make this work!')
+        }
+      }
+    })()
+  }, [])
+
   const goToPage = () => {
     navigation.navigate('profile')
   }
@@ -92,18 +103,13 @@ export function PrimaryNavigator(props) {
 
   const _pickImage = async (screen: string) => {
     try {
-      const permissionResult = await ImagePicker.requestCameraRollPermissionsAsync()
-
-      if (permissionResult.granted === false) {
-        alert("Permission to access camera roll is required!")
-        return
-      }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       })
+      console.log("PrimaryNavigator -> result", result)
 
       if (!result.cancelled) {
         await save("@fileObject", result)
@@ -131,6 +137,7 @@ export function PrimaryNavigator(props) {
         tx="modal.createMemory"
         onPress={() => _pickImage('add-memory')}
       />
+
       <Button
         style={DEMO}
         textStyle={DEMO_TEXT}
@@ -142,7 +149,6 @@ export function PrimaryNavigator(props) {
   const sheetRef = React.useRef(null)
   return (
     <>
-
       <Header
         onRightPress={goToPage}
         headerText={getCurrentScreen()}
@@ -173,7 +179,7 @@ export function PrimaryNavigator(props) {
         <TouchableOpacity onPress={() => {
           sheetRef.current.snapTo(0)
           Haptics.notificationAsync()
-        }} style={{ marginBottom: 25, backgroundColor: color.palette.black, borderRadius: "100%", width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        }} style={{ marginBottom: 25, backgroundColor: color.palette.black, borderRadius: 100, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
 
           <AntDesign name="plus" size={30} color="white" />
         </TouchableOpacity>
@@ -185,6 +191,7 @@ export function PrimaryNavigator(props) {
         </TouchableOpacity>
       </View>
       <BottomSheet
+        enabledContentTapInteraction={false}
         ref={sheetRef}
         snapPoints={[250, 0]}
         initialSnap={1}
