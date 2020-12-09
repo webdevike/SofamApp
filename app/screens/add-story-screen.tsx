@@ -55,10 +55,11 @@ mutation createStory($file: Upload!) {
 }`
 
 const USERS = gql`
-{
+  {
   users {
     id
     name
+    profilePicture
     stories {
       id
       url
@@ -95,20 +96,20 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
           url: file.uri,
           file
         },
-        // optimisticResponse: {
-        //   __typename: 'Mutation',
-        //   createStory: {
-        //     __typename: "User",
-        //     id: Math.round(Math.random() * -1000000),
-        //     name: 'Isaac',
-        //     stories: [
-        //       {
-        //         id: Math.round(Math.random() * -1000000),
-        //         url: file.uri,
-        //       }
-        //     ]
-        //   }
-        // },
+        optimisticResponse: {
+          __typename: 'Mutation',
+          createStory: {
+            __typename: "User",
+            id: Math.round(Math.random() * -1000000),
+            name: 'Isaac',
+            stories: [
+              {
+                id: Math.round(Math.random() * -1000000),
+                url: file.uri,
+              }
+            ]
+          }
+        },
         update: (proxy, { data: { createStory } }) => {
           const data = proxy.readQuery({ query: USERS })
           proxy.writeQuery({

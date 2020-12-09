@@ -82,6 +82,7 @@ export function PrimaryNavigator(props) {
     (async () => {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestCameraRollPermissionsAsync()
+        console.log(status)
         if (status !== 'granted') {
           alert('Sorry, we need camera roll permissions to make this work!')
         }
@@ -102,6 +103,7 @@ export function PrimaryNavigator(props) {
   }
 
   const _pickImage = async (screen: string) => {
+    console.log('hello???')
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
