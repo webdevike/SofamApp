@@ -16,6 +16,8 @@ export async function uploadImage(file: File, signedRequest: string) {
         'Content-type': 'image/jpeg'
       }
     })
+
+    return 'upload successful'
   } catch (error) {
     console.log("uploadImage -> error", error)
   }

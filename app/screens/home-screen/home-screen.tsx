@@ -17,6 +17,7 @@ import { gql, useQuery } from "@apollo/client"
 import { useNavigation } from "@react-navigation/native"
 import { ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
+import { StatusBar } from 'expo-status-bar';
 
 const USERS = gql`
   {
@@ -79,7 +80,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const goBack = () => navigation.goBack()
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = React.useCallback(async () => {
     refetch()
     if (loading) {
       setRefreshing(true)
@@ -127,6 +128,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             <Text style={OVERLAY_TEXT}>{item.name}</Text>
           </View>
         </TouchableOpacity>
+        <StatusBar style="auto" />
       </View>
     )
   }

@@ -14,7 +14,7 @@ const IMAGE_OVERLAY: ImageStyle = {
 
 export class ImageSlider extends Component {
   [x: string]: any
-  _renderItem = ({ item }) => {
+  _renderItem = ({ item, index }) => {
     const uri = item?.url
     const renderVidoeOrThumbnail = () => {
       if (uri.includes('.mov')) {
@@ -34,11 +34,16 @@ export class ImageSlider extends Component {
         )
       } else {
         return (
-          <ProgressiveImage
-            thumbnailSource={{ uri: `https://images.pexels.com/photos/593158/pexels-photo-593158.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260&buster=${Math.random()}` }}
-            source={{ uri: item.url }}
-            style={IMAGE_OVERLAY}
-          />
+          <>
+            <View style={{ backgroundColor: 'red' }}>
+              <Text>{index}</Text>
+            </View>
+            <ProgressiveImage
+              thumbnailSource={{ uri: `https://images.pexels.com/photos/593158/pexels-photo-593158.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260&buster=${Math.random()}` }}
+              source={{ uri: item.url }}
+              style={IMAGE_OVERLAY}
+            />
+          </>
         )
       }
     }
@@ -64,7 +69,6 @@ export class ImageSlider extends Component {
           sliderWidth={imageWidth}
           itemWidth={imageWidth}
         />
-        {/* <Text>Hello?</Text> */}
       </View>
     )
   }

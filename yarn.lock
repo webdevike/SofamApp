@@ -8280,6 +8280,11 @@ ignite-bowser@^5.2.0:
     ramda "^0.26.1"
     read-pkg-up "^7.0.0"
 
+ignite-camera@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/ignite-camera/-/ignite-camera-0.0.1.tgz#da12b31c3c24b5046c8374d740fb126a8b02da9a"
+  integrity sha512-tE/vFRB8i2a7Xkfb5pCimyUA5wYlbMc8kbeSMXtZ3U0O0RoeL8sG6pMHlx62r0OzFH3meRKI/JfQC9ZGPxtGwA==
+
 ignore-walk@^3.0.1:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/ignore-walk/-/ignore-walk-3.0.3.tgz#017e2447184bfeade7c238e4aefdd1e8f95b1e37"
@@ -12593,6 +12598,11 @@ react-native-keychain@^6.1.1:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-6.1.1.tgz#3c14e4df9e5599f8d5a708da75d27f9d2424d7c1"
   integrity sha512-WYvAg7FbYPyX8jJ1rY/IQGS+6zK5LtNMRa3E8x1n0M5Lmsm/9CHtakzbmqT+rLvFE7DpPBg7qFawMuUoDjjtYA==
+
+react-native-permissions@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-3.0.0.tgz#d9d107700741d41f8392f202f35a61f481fb0e68"
+  integrity sha512-zBvf+o3NhgKmBk1I06GzZXaDfc9SUyO4M5TMcaCF1pwG1h4sI+XAv3gWSbryl6WnaZQc1zA+g7SocSoYcpJN5g==
 
 react-native-reanimated@1.9.0, react-native-reanimated@~1.9.0:
   version "1.9.0"

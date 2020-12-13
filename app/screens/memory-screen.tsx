@@ -84,7 +84,7 @@ export const MemoryScreen: Component = observer(function MemoryScreen() {
             showsVerticalScrollIndicator={false}
           />
       }
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
     </SafeAreaView>
   )
 })

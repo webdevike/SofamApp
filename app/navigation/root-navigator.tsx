@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack"
 import { PrimaryNavigator } from "./primary-navigator"
 import { AuthNavigator } from "./auth-navigator"
 import { useReactiveVar } from "@apollo/client"
-import { AddMemoryScreen, AddStoryScreen, LoginScreen, StoryScreen } from "../screens"
+import { AddMemoryScreen, AddStoryScreen, CameraScreen, CreateScreen, LoginScreen, StoryScreen } from "../screens"
 import { accessTokenVar } from "../cache"
 import { color } from "../theme"
 
@@ -49,9 +49,33 @@ const RootStack = () => {
           headerTintColor: color.palette.white
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="add-story"
         component={AddStoryScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: color.palette.black,
+          },
+          headerTitle: "",
+          headerBackTitleVisible: false,
+          headerTintColor: color.palette.white
+        }}
+      /> */}
+      <Stack.Screen
+        name="camera-screen"
+        component={CameraScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: color.palette.black,
+          },
+          headerTitle: "",
+          headerBackTitleVisible: false,
+          headerTintColor: color.palette.white
+        }}
+      />
+      <Stack.Screen
+        name="create"
+        component={CreateScreen}
         options={{
           headerStyle: {
             backgroundColor: color.palette.black,

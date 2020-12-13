@@ -160,7 +160,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         await save("@fileObject", result)
       }
     } catch (error) {
-      console.log(error, 'error is here!')
+      console.log(error, 'error is here! in register screen')
     }
   }
 
@@ -275,7 +275,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
             <Text style={{ fontWeight: "bold", fontSize: 16 }}>Login</Text>
           </TouchableOpacity>
         </View>
-        <StatusBar style="light" />
+        <StatusBar style="auto" />
       </KeyboardAvoidingView>
     </View>
   )

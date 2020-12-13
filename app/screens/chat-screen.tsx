@@ -170,7 +170,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
           returnKeyType="send"
         />
       </KeyboardAvoidingView>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
     </SafeAreaView>
   )
 })

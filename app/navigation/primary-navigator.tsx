@@ -4,9 +4,9 @@
  *
  * You'll likely spend most of your time in this file.
  */
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { createStackNavigator } from "@react-navigation/stack"
-import { HomeScreen, DemoScreen, ProfileScreen, MemoryScreen, ChatScreen, CalendarScreen, AddMemoryScreen } from "../screens"
+import { HomeScreen, DemoScreen, ProfileScreen, MemoryScreen, ChatScreen, CalendarScreen, AddMemoryScreen, CameraScreen } from "../screens"
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { AntDesign, Octicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
@@ -20,6 +20,7 @@ import { spacing } from "../theme"
 import { gql, useMutation } from "@apollo/client"
 import { load, save } from '../utils/storage'
 import { useNavigation, useRoute } from "@react-navigation/native"
+import { Camera } from 'expo-camera'
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -77,15 +78,17 @@ export function PrimaryNavigator(props) {
   const route = useRoute()
   const navigation = useNavigation()
   const currentScreen = route.state?.index
+  const [hasPermission, setHasPermission] = useState(null)
 
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestCameraRollPermissionsAsync()
-        console.log(status)
+        // const { cameraStatus } = await Camera.requestPermissionsAsync()
         if (status !== 'granted') {
           alert('Sorry, we need camera roll permissions to make this work!')
         }
+        setHasPermission(status === 'granted')
       }
     })()
   }, [])
@@ -103,7 +106,6 @@ export function PrimaryNavigator(props) {
   }
 
   const _pickImage = async (screen: string) => {
-    console.log('hello???')
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -111,14 +113,13 @@ export function PrimaryNavigator(props) {
         aspect: [4, 3],
         quality: 1,
       })
-      console.log("PrimaryNavigator -> result", result)
 
       if (!result.cancelled) {
         await save("@fileObject", result)
         navigation.navigate(screen)
       }
     } catch (error) {
-      console.log(error, 'error is here!')
+      console.log(error, 'error is here in primary navigator')
     }
   }
   const renderContent = () => (
@@ -145,6 +146,12 @@ export function PrimaryNavigator(props) {
         textStyle={DEMO_TEXT}
         text="create Story"
         onPress={() => _pickImage('add-story')}
+      />
+      <Button
+        style={DEMO}
+        textStyle={DEMO_TEXT}
+        text="Take a picture"
+        onPress={() => navigation.navigate('camera-screen')}
       />
     </View>
   )
@@ -179,8 +186,8 @@ export function PrimaryNavigator(props) {
           <Octicons name="file-media" size={30} color={color.palette.black} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => {
-          sheetRef.current.snapTo(0)
           Haptics.notificationAsync()
+          navigation.navigate('camera-screen')
         }} style={{ marginBottom: 25, backgroundColor: color.palette.black, borderRadius: 100, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
 
           <AntDesign name="plus" size={30} color="white" />
