@@ -1,7 +1,7 @@
 import { gql, useMutation } from "@apollo/client"
 import React, { FunctionComponent as Component, useEffect, useState } from "react"
 // import { observer } from "mobx-react-lite"
-import { Image, ImageStyle, KeyboardAvoidingView, Text, TextInput, TextStyle, View, ViewStyle } from "react-native"
+import { Alert, Image, ImageStyle, KeyboardAvoidingView, Text, TextInput, TextStyle, View, ViewStyle } from "react-native"
 import { FormRow, Button } from "../components"
 import { color, spacing, typography } from "../theme"
 import { load } from "../utils/storage"
@@ -121,7 +121,7 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
       })
       uploadImage(file, data.createStory.signedRequest)
     } catch (error) {
-      console.log("AddStoryScreen -> error", error)
+      Alert.alert(error)
     }
   }
   return (

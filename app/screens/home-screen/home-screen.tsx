@@ -38,14 +38,16 @@ const ROOT: ViewStyle = {
 }
 
 const VIDEO: ViewStyle = {
-  height: 250,
+  height: 200,
   flex: 1,
+  borderRadius: 20,
 }
 
 const IMAGE: ImageStyle = {
-  height: 250,
+  height: 200,
   flex: 1,
   borderRadius: 20,
+  resizeMode: 'cover'
 }
 
 const IMAGE_CONTAINER: ViewStyle = {
@@ -78,7 +80,6 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
   const { loading, data: userAndStories, refetch } = useQuery(USERS)
   const [refreshing, setRefreshing] = useState(false)
-  const goBack = () => navigation.goBack()
 
   const onRefresh = React.useCallback(async () => {
     refetch()
@@ -98,7 +99,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             rate={1.0}
             volume={0}
             isMuted={false}
-            resizeMode="contain"
+            resizeMode="cover"
             shouldPlay
             isLooping
             style={VIDEO}

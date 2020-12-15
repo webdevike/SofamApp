@@ -12,7 +12,7 @@ import { AntDesign, Octicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { ReactNativeFile } from 'apollo-upload-client'
 import BottomSheet from 'reanimated-bottom-sheet'
-import { Text, View, TouchableOpacity, ViewStyle, TextStyle, Platform } from "react-native"
+import { Text, View, TouchableOpacity, ViewStyle, TextStyle, Platform, Alert } from "react-native"
 import * as Haptics from 'expo-haptics'
 import { color } from '../theme/color'
 import { Button, Header } from "../components"
@@ -111,7 +111,8 @@ export function PrimaryNavigator(props) {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.1,
+        videoExportPreset: 2
       })
 
       if (!result.cancelled) {
@@ -119,7 +120,7 @@ export function PrimaryNavigator(props) {
         navigation.navigate(screen)
       }
     } catch (error) {
-      console.log(error, 'error is here in primary navigator')
+      Alert.alert(error)
     }
   }
   const renderContent = () => (

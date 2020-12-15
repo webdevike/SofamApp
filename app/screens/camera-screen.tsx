@@ -1,10 +1,10 @@
 import React, { FunctionComponent as Component, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { Image, Platform, TouchableOpacity, View, ViewStyle } from "react-native"
+import { ActivityIndicator, Alert, Image, Platform, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
 import { Screen, Text } from "../components"
 import { Camera } from "expo-camera"
-import { spacing } from "../theme"
-import { uploadImage } from "../utils/uploadImage"
+import { color, spacing } from "../theme"
+import { getFileType, uploadImage } from "../utils/uploadImage"
 import { gql, useMutation } from "@apollo/client"
 import { ReactNativeFile } from 'apollo-upload-client'
 import { StatusBar } from "expo-status-bar"
@@ -41,9 +41,10 @@ export const CameraScreen: Component = observer(function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null)
   const [type, setType] = useState(Camera.Constants.Type.back)
   const [createStory] = useMutation(CREATE_STORY)
+  const [loading, setLoading] = useState(false)
   const ref = useRef(null)
 
- useEffect(() => {
+  useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
         const { status } = await Camera.requestPermissionsAsync()
@@ -68,23 +69,19 @@ export const CameraScreen: Component = observer(function CameraScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.1,
+        videoExportPreset: 2
       })
-      // result
-      // {
-      //   "cancelled": false,
-      //   "height": 1168,
-      //   "type": "image",
-      //   "uri": "file:///var/mobile/Containers/Data/Application/37B16834-4910-42B3-9450-E7CBB2C11679/Library/Caches/ExponentExperienceData/%2540ikey2244%252FSofamApp/ImagePicker/B2C2B5F9-5251-41AD-90E9-B5C9871ED974.jpg",
-      //   "width": 1166,
-      // }
-      
+      if(!result.cancelled) {
+        setLoading(true)
+      }
+
       const filename = result.uri.split('/').pop()
 
       const file = new ReactNativeFile({
         uri: result.uri,
         name: filename,
-        type: 'image'
+        type: 'image/jpeg'
       })
 
       const { data } = await createStory({
@@ -116,60 +113,53 @@ export const CameraScreen: Component = observer(function CameraScreen() {
           })
         }
       })
-      if(!data) {
-        alert('nothing happened')
-      }
       navigation.navigate('home')
       uploadImage(file, data.createStory.signedRequest)
     } catch (error) {
-      console.log(error, 'error is here! in camera screen')
+      setLoading(false)
+      Alert.alert(error)
     }
   }
 
-//   const _takePhoto = async () => {
-//     const {
-//       status: cameraPerm
-//     } = await Permissions.askAsync(Permissions.CAMERA);
-    
-//     const {
-//       status: cameraRollPerm
-//     } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-    
-//     // only if user allows permission to camera AND camera roll
-//     if (cameraPerm === 'granted' && cameraRollPerm === 'granted') {
-//       let pickerResult = await ImagePicker.launchCameraAsync({
-//         allowsEditing: true,
-//         aspect: [4, 3],
-//       });
-//       console.log("🚀 ~ file: camera-screen.tsx ~ line 144 ~ const_takePhoto= ~ pickerResult", pickerResult)
-      
-//       navigation.navigate('create', { ...pickerResult })
-// };
-// }
 
   const _takePhoto = async () => {
-    const {
-            status: cameraPerm
-          } = await Permissions.askAsync(Permissions.CAMERA);
-          
-          const {
-            status: cameraRollPerm
-          } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    const { status: cameraPerm } = await Permissions.askAsync(Permissions.CAMERA);
+
+    const { status: cameraRollPerm } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     try {
       if (cameraPerm === 'granted' && cameraRollPerm === 'granted') {
-        const photo = await ref.current.takePictureAsync()
+        const photo = await ref.current.takePictureAsync({
+          quality: 0.1,
+        })
         navigation.navigate('create', { ...photo })
       }
     }
-    catch(error ) {
-    alert(error)
-
+    catch (error) {
+      Alert.alert(error)
     }
   }
+  const styles = StyleSheet.create({
+    loadingOverlay: {
+      alignItems: 'center',
+      backgroundColor: color.palette.black,
+      bottom: 0,
+      justifyContent: 'center',
+      left: 0,
+      opacity: 0.8,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    }
+  })
 
   return (
     <View style={{ flex: 1 }}>
       <Camera style={{ flex: 1 }} type={type} ref={ref}>
+        {loading &&
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size='large' color="white" />
+          </View>
+        }
         <View
           style={{
             flex: 1,

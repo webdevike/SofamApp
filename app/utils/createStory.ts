@@ -1,16 +1,7 @@
-import { gql, useMutation } from '@apollo/client'
-import { useNavigation } from '@react-navigation/native'
+import { gql } from '@apollo/client'
 import { ReactNativeFile } from 'apollo-upload-client'
+import { Alert } from 'react-native'
 import { uploadImage } from './uploadImage'
-
-const CREATE_STORY = gql`
-mutation createStory($file: Upload!) {
-  createStory(file: $file) {
-    id
-    url
-    signedRequest
-  }
-}`
 
 const USERS = gql`
   {
@@ -25,18 +16,17 @@ const USERS = gql`
   }
 }
 `
-export const handleCreateStory = async (photo) => {
-  const navigation = useNavigation()
-  const [createStory] = useMutation(CREATE_STORY)
-  const filename = photo.uri.split('/').pop()
-
-  const file = new ReactNativeFile({
-    uri: photo.uri,
-    name: filename,
-    type: 'jpeg'
-  })
+export const handleCreateStory = async (photo, createStory, navigation) => {
   try {
+    const filename = photo.uri.split('/').pop()
+
+    const file = new ReactNativeFile({
+      uri: photo.uri,
+      name: filename,
+      type: 'image/jpeg',
+    })
     const { data } = await createStory({
+
       variables: {
         url: file.uri,
         file
@@ -55,6 +45,11 @@ export const handleCreateStory = async (photo) => {
           ]
         }
       },
+
+      // ! WHATEVER IS WRONG WITH THIS I THINK IT HAS TO DO WITH THE CACHE
+      // ! WHEN I UPLOAD A PICTURE WITHOUT CACHE IT SEEMS TO WORK MORE TIMES THAN NOT
+      // ! IF I UPLOAD SOMETHING WITH OPTIMSTIC UI ENABLED IT BREAKS LIKE 3/5 TIMES
+
       update: (proxy, { data: { createStory } }) => {
         const data = proxy.readQuery({ query: USERS })
         proxy.writeQuery({
@@ -65,9 +60,13 @@ export const handleCreateStory = async (photo) => {
         })
       }
     })
-    uploadImage(file, data.createStory.signedRequest)
-    navigation.navigate('home')
+    const success = await uploadImage(file, data.createStory.signedRequest)
+    if (success) {
+      navigation.navigate('home')
+    } else {
+      Alert.alert('someting when wrong')
+    }
   } catch (error) {
-    console.log("AddStoryScreen -> error", error)
+    Alert.alert(error)
   }
 }

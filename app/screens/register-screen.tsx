@@ -1,6 +1,6 @@
 import React, { FunctionComponent as Component, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native"
+import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native"
 import { Button, Text } from "../components"
 import { color, spacing, typography } from "../theme"
 import { gql, useMutation, useReactiveVar } from "@apollo/client"
@@ -115,6 +115,20 @@ const REGISTER_MUTATION = gql`
       }
   }
 `
+
+const USERS = gql`
+  {
+  users {
+    id
+    name
+    profilePicture
+    stories {
+      id
+      url
+    }
+  }
+}
+`
 const IS_LOGGED_IN = gql`
   {
     isLoggedIn @client
@@ -130,16 +144,9 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [secretCode, setsecretCode] = useState("")
-  const [fileData, setFileData] = useState<FileDataObject>()
+  const [pickerResult, setPickerResult] = useState()
   const loggedIn = useReactiveVar(accessTokenVar)
-
-  useEffect(() => {
-    ; (async () => {
-      const fileObject = await load("@fileObject")
-      // the file that was chosen from the pickImage function
-      setFileData(fileObject)
-    })()
-  }, [])
+  console.log("🚀 ~ file: register-screen.tsx ~ line 148 ~ RegisterScreen ~ pickerResult", pickerResult)
 
   const pickImage = async (screen: string) => {
     try {
@@ -149,59 +156,67 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         alert("Permission to access camera roll is required!")
         return
       }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.1,
+        videoExportPreset: 2
       })
 
       if (!result.cancelled) {
-        await save("@fileObject", result)
+        setPickerResult(result)
       }
     } catch (error) {
-      console.log(error, 'error is here! in register screen')
+      Alert.alert(error)
     }
   }
 
   const handleRegister = async () => {
+      try {
 
-      const filename = fileData.uri.split('/').pop()
+        const filename = pickerResult?.uri.split('/').pop()
 
-      const file = new ReactNativeFile({
-        uri: fileData.uri,
-        name: filename,
-        type: fileData.type
-      })
-      console.log("RegisterScreen -> file", file)
-      
-      const { data }: any = await register({
-        variables: {
-          email: email,
-          password: password,
-          name,
-          secretCode,
-          profilePicture: file
-        },
-        // update: (proxy, { data: { register } }) => {
-        //   const data = proxy.readQuery({ query: USERS })
-        //   proxy.writeQuery({
-        //     query: USERS,
-        //     data: {
-        //       users: [...data.users, register]
-        //     }
-        //   })
-        // }
-      })
-      uploadImage(file, data.register.signedRequest)
-      saveString("@authToken", data.register.accessToken)
-      accessTokenVar(true)
-      cache.writeQuery({
-        query: IS_LOGGED_IN,
-        data: {
-          isLoggedIn: loggedIn
-        },
-      })
+        const file = new ReactNativeFile({
+          uri: pickerResult?.uri,
+          name: filename,
+          type: pickerResult?.type
+        })
+        
+        const { data }: any = await register({
+          variables: {
+            email: email,
+            password: password,
+            name,
+            secretCode,
+            profilePicture: file
+          },
+          // update: (proxy, { data: { register } }) => {
+          //   const data = proxy.readQuery({ query: USERS })
+          //   proxy.writeQuery({
+          //     query: USERS,
+          //     data: {
+          //       users: [...data.users, register]
+          //     }
+          //   })
+          // }
+        })
+        uploadImage(file, data.register.signedRequest)
+        saveString("@authToken", data.register.accessToken)
+        accessTokenVar(true)
+        cache.writeQuery({
+          query: IS_LOGGED_IN,
+          data: {
+            isLoggedIn: loggedIn
+          },
+        })
+        
+      } catch (error) {
+        Alert.alert(error)
+
+      }
+
   }
   return (
     <View style={FULL}>
@@ -249,12 +264,12 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         />
         <Text style={IMAGE_PICKER_LABEL}>Upload profile Picture</Text>
         <View style={IMAGE_PICKER_CONTAINER}>
-          <Button
+          {/* <Button
             style={IMAGE_PICKER_BUTTON}
             textStyle={LOGIN_BUTTON_TEXT}
             text="Take A Picture"
             onPress={pickImage}
-          />
+          /> */}
           <Button
             style={IMAGE_PICKER_BUTTON}
             textStyle={LOGIN_BUTTON_TEXT}
@@ -275,7 +290,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
             <Text style={{ fontWeight: "bold", fontSize: 16 }}>Login</Text>
           </TouchableOpacity>
         </View>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
       </KeyboardAvoidingView>
     </View>
   )

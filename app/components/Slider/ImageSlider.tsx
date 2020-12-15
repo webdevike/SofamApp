@@ -1,18 +1,31 @@
 import React, { Component } from "react"
-import Carousel from "react-native-snap-carousel"
-import { View, Image, ImageStyle, Dimensions, Text } from "react-native"
+import Carousel, { Pagination } from "react-native-snap-carousel"
+import { View, Image, ImageStyle, Dimensions, Text, Platform } from "react-native"
 import { Video } from "expo-av"
 import { ProgressiveImage } from ".."
+import { sliderWidth, itemWidth } from './styles/SliderEntry.style'
+import { color } from "../../theme"
+import styles from "./styles"
 
 const dimensions = Dimensions.get('window')
 const imageWidth = dimensions.width
 
+const IS_ANDROID = Platform.OS === 'android'
+const SLIDER_1_FIRST_ITEM = 0
+
 const IMAGE_OVERLAY: ImageStyle = {
-  height: 550,
-  width: imageWidth
+  height: 500,
+  width: imageWidth,
 }
 
 export class ImageSlider extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      slider1ActiveSlide: SLIDER_1_FIRST_ITEM
+    }
+  }
+
   [x: string]: any
   _renderItem = ({ item, index }) => {
     const uri = item?.url
@@ -22,22 +35,22 @@ export class ImageSlider extends Component {
           <Video
             source={{ uri }}
             rate={1.0}
-            volume={0}
+            volume={1}
             isMuted={false}
             resizeMode="cover"
             shouldPlay
-            isLooping
+            // isLooping
             style={{
-              height: 550,
+              height: 500,
             }}
           />
         )
       } else {
         return (
           <>
-            <View style={{ backgroundColor: 'red' }}>
+            {/* <View style={{ backgroundColor: 'red' }}>
               <Text>{index}</Text>
-            </View>
+            </View> */}
             <ProgressiveImage
               thumbnailSource={{ uri: `https://images.pexels.com/photos/593158/pexels-photo-593158.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260&buster=${Math.random()}` }}
               source={{ uri: item.url }}
@@ -55,6 +68,7 @@ export class ImageSlider extends Component {
   }
 
   render() {
+    const { slider1ActiveSlide } = this.state
     return (
       <View style={{
         flex: 1,
@@ -68,7 +82,28 @@ export class ImageSlider extends Component {
           renderItem={this._renderItem}
           sliderWidth={imageWidth}
           itemWidth={imageWidth}
+          // sliderWidth={sliderWidth}
+          // itemWidth={itemWidth}
+          // hasParallaxImages={true}
+          firstItem={SLIDER_1_FIRST_ITEM}
+          // inactiveSlideScale={0.94}
+          // inactiveSlideOpacity={0.7}
+          // containerCustomStyle={styles.slider}
+          // contentContainerCustomStyle={styles.sliderContentContainer}
+          onSnapToItem={(index) => this.setState({ slider1ActiveSlide: index }) }
         />
+        {/* <Pagination
+          dotsLength={this.props.entries.length}
+          activeDotIndex={slider1ActiveSlide}
+          containerStyle={styles.paginationContainer}
+          dotColor={'rgba(255, 255, 255, 0.92)'}
+          dotStyle={styles.paginationDot}
+          inactiveDotColor={color.palette.lightGrey}
+          inactiveDotOpacity={0.4}
+          inactiveDotScale={0.6}
+          carouselRef={this._carousel}
+          tappableDots={!!this._carousel}
+        /> */}
       </View>
     )
   }
