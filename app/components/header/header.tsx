@@ -67,7 +67,7 @@ export const Header: Component<HeaderProps> = props => {
           <View>
             <ProgressiveImage
               thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
-              source={{ uri: user?.me.profilePicture }}
+              source={{ uri: user?.me?.profilePicture }}
               style={PROFILE_IMAGE} />
           </View>
 

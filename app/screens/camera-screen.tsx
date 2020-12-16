@@ -181,6 +181,7 @@ export const CameraScreen: Component = observer(function CameraScreen() {
               width: 100,
               height: 100,
             }}
+            onLongPress={() => Alert.alert('You found an easter egg 🐰! Soon enough when you hold this button down it will start recording. So fancy! 🎊🎉')}
             onPress={_takePhoto}
           >
           </TouchableOpacity>

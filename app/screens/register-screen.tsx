@@ -146,7 +146,6 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [secretCode, setsecretCode] = useState("")
   const [pickerResult, setPickerResult] = useState()
   const loggedIn = useReactiveVar(accessTokenVar)
-  console.log("🚀 ~ file: register-screen.tsx ~ line 148 ~ RegisterScreen ~ pickerResult", pickerResult)
 
   const pickImage = async (screen: string) => {
     try {
