@@ -1,0 +1,9 @@
+query allMemories {
+  memories {
+    id
+    title
+    description
+    location
+    thumbnail
+  }
+}

@@ -1,14 +1,12 @@
-import { gql, useMutation } from "@apollo/client"
-import React, { FunctionComponent as Component, useEffect, useState } from "react"
-// import { observer } from "mobx-react-lite"
-import { ActivityIndicator, Image, ImageStyle, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TextStyle, View, ViewStyle } from "react-native"
+import React, { FunctionComponent as Component, useState } from "react"
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View, ViewStyle } from "react-native"
 import { FormRow, Button, ErrorPopup } from "../components"
 import { color, spacing, typography } from "../theme"
 import { ReactNativeFile } from 'apollo-upload-client'
 import { useNavigation, } from "@react-navigation/native"
 import { uploadImage } from "../utils/uploadImage"
 import { Video } from "expo-av"
-import { CREATE_MEMORY, MEMORIES } from "../graphql"
+import { AllMemoriesDocument, AllMemoriesQuery, useCreateMemoryMutation } from "../generated/graphql"
 
 const styles = StyleSheet.create({
   IMAGE_WITH_STORY: {
@@ -59,7 +57,7 @@ export const AddMemoryScreen: Component = function AddMemoryScreen(props) {
   const fileData = props.route.params
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [createMemory, { loading, error }] = useMutation(CREATE_MEMORY)
+  const [createMemory, { loading, error }] = useCreateMemoryMutation()
   const navigation = useNavigation()
 
   const handleCreateMemory = async () => {
@@ -75,25 +73,24 @@ export const AddMemoryScreen: Component = function AddMemoryScreen(props) {
         title,
         description
       },
-      // optimisticResponse: {
-      //   __typename: 'Mutation',
-      //   createMemory: {
-      //     __typename: "Memory",
-      //     id: Math.round(Math.random() * -1000000),
-      //     location: "testing",
-      //     thumbnail: file.uri,
-      //     title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
-      //   }
-      // },
-      // update: (proxy, { data: { createMemory } }) => {
-      //   const data = proxy.readQuery({ query: MEMORIES })
-      //   proxy.writeQuery({
-      //     query: MEMORIES,
-      //     data: {
-      //       memories: [...data.memories, createMemory]
-      //     }
-      //   })
-      // }
+      optimisticResponse: {
+        __typename: 'Mutation',
+        createMemory: {
+          __typename: "Memory",
+          id: Math.round(Math.random() * -1000000).toString(),
+          thumbnail: file.uri,
+          title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
+        }
+      },
+      update: (proxy, { data: { createMemory } }) => {
+        const data: AllMemoriesQuery = proxy.readQuery({ query: AllMemoriesDocument })
+        proxy.writeQuery({
+          query: AllMemoriesDocument,
+          data: {
+            memories: [...data.memories, createMemory]
+          }
+        })
+      }
     })
     navigation.navigate('memory')
     uploadImage(file, data.createMemory.signedRequest)

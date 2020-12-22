@@ -1,0 +1,10 @@
+mutation createMemory($file: Upload!, $title: String!, $location: String, $description: String) {
+  createMemory(file: $file, title: $title, location: $location, description: $description) {
+    id
+    title
+    description
+    thumbnail
+    signedRequest
+    url
+  }
+}

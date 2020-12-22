@@ -1,0 +1,11 @@
+query getUsers {
+  users {
+    id
+    name
+    profilePicture
+    stories {
+      id
+      url
+    }
+  }
+}
