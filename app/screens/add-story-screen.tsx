@@ -121,7 +121,7 @@ export const AddStoryScreen: Component = function AddStoryScreen(props) {
       })
       uploadImage(file, data.createStory.signedRequest)
     } catch (error) {
-      Alert.alert(error)
+      console.log(error)
     }
   }
   return (

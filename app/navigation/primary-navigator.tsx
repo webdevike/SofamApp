@@ -102,7 +102,7 @@ export function PrimaryNavigator(props) {
     if (currentScreen === 3) return 'Memories'
     if (currentScreen === 4) return 'Group Chat'
     if (currentScreen === 5) return 'Calendar'
-    else return 'Sofam'
+    else return 'Stories'
   }
 
   const _pickImage = async (screen: string) => {
@@ -120,7 +120,7 @@ export function PrimaryNavigator(props) {
         navigation.navigate(screen)
       }
     } catch (error) {
-      Alert.alert(error)
+      console.log(error)
     }
   }
   const renderContent = () => (

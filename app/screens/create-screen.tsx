@@ -1,21 +1,15 @@
-import React, { FunctionComponent as Component, useState } from "react"
+import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-import { ActivityIndicator, Alert, Image, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
-import { Screen, Text, Button } from "../components"
+import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native"
+import { Text, ErrorPopup } from "../components"
 import { color, spacing } from "../theme"
 import { Entypo, MaterialCommunityIcons } from '@expo/vector-icons'
-
-import { gql, useMutation } from '@apollo/client'
+import { useMutation } from '@apollo/client'
 import { useNavigation } from '@react-navigation/native'
 import { ReactNativeFile } from 'apollo-upload-client'
-import { getFileType, uploadImage } from "../utils/uploadImage"
-import { cache } from "../cache"
-// import { handleCreateStory } from "../utils/createStory"
-
-const ROOT: ViewStyle = {
-  flex: 1,
-  backgroundColor: 'black'
-}
+import { uploadImage } from "../utils/uploadImage"
+import { CREATE_STORY, USERS } from "../graphql"
+import { Video } from "expo-av"
 
 const styles = StyleSheet.create({
   buttonContainer: {
@@ -64,94 +58,88 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
-  }
+  },
+  root: {
+    backgroundColor: color.palette.black,
+    flex: 1
+  },
+  video: {
+    flex: 1,
+    height: 250
+  },
 })
-
-const CREATE_STORY = gql`
-mutation createStory($file: Upload!) {
-  createStory(file: $file) {
-    id
-    url
-    signedRequest
-  }
-}`
-
-const USERS = gql`
-  {
-  users {
-    id
-    name
-    profilePicture
-    stories {
-      id
-      url
-    }
-  }
-}
-`
 
 export const CreateScreen: Component = observer(function CreateScreen({ route }) {
   const photo = route.params
-  const [loading, setLoading] = useState(false)
-  const [createStory] = useMutation(CREATE_STORY)
+  const [createStory, { error, loading }] = useMutation(CREATE_STORY)
   const navigation = useNavigation()
 
   const handleCreateStory = async () => {
-    setLoading(true)
-    try {
-      const filename = photo.uri.split('/').pop()
+    const filename = photo.uri.split('/').pop()
+    const file = new ReactNativeFile({
+      uri: photo.uri,
+      name: filename,
+      type: "image/jpeg"
+    })
+    const { data } = await createStory({
+      variables: {
+        url: file.uri,
+        file
+      },
+      // optimisticResponse: {
+      //   __typename: 'Mutation',
+      //   createStory: {
+      //     __typename: "User",
+      //     id: Math.round(Math.random() * -1000000),
+      //     name: 'Isaac',
+      //     stories: [
+      //       {
+      //         id: Math.round(Math.random() * -1000000),
+      //         url: file.uri,
+      //       }
+      //     ]
+      //   }
+      // },
+      // update: (proxy, { data: { createStory } }) => {
+      //   const data = proxy.readQuery({ query: USERS })
+      //   proxy.writeQuery({
+      //     query: USERS,
+      //     data: {
+      //       users: [...data.users, createStory]
+      //     }
+      //   })
+      // }
+    })
+    await uploadImage(file, data.createStory.signedRequest)
+    if (!loading && !error) navigation.navigate('home')
+  }
 
-      const file = new ReactNativeFile({
-        uri: photo.uri,
-        name: filename,
-        type: "image/jpeg"
-      })
-      const { data } = await createStory({
-        variables: {
-          url: file.uri,
-          file
-        },
-        optimisticResponse: {
-          __typename: 'Mutation',
-          createStory: {
-            __typename: "User",
-            id: Math.round(Math.random() * -1000000),
-            name: 'Isaac',
-            stories: [
-              {
-                id: Math.round(Math.random() * -1000000),
-                url: file.uri,
-              }
-            ]
-          }
-        },
-
-        update: (proxy, { data: { createStory } }) => {
-          const data = proxy.readQuery({ query: USERS })
-          proxy.writeQuery({
-            query: USERS,
-            data: {
-              users: [...data.users, createStory]
-            }
-          })
-        }
-      })
-      const success = await uploadImage(file, data.createStory.signedRequest)
-      if (success) {
-        navigation.navigate('home')
-      } else {
-        Alert.alert('someting when wrong')
-      }
-    } catch (error) {
-      setLoading(false)
-      Alert.alert(error)
+  const renderVideoOrImage = () => {
+    if (photo?.uri.includes('.mov')) {
+      return (
+        <Video
+          source={{ uri: photo?.uri }}
+          rate={1.0}
+          volume={0}
+          isMuted={false}
+          resizeMode="cover"
+          shouldPlay
+          isLooping
+          style={styles.video}
+        />
+      )
+    } else {
+      return (
+        <Image style={styles.image} source={{ uri: photo?.uri }} />
+      )
     }
   }
 
   return (
-    <View style={ROOT} >
+    <View style={styles.root}>
+      {error && <ErrorPopup error={error} />}
       <View style={styles.imageContainer}>
-        <Image style={styles.image} source={{ uri: photo.uri }} />
+        {renderVideoOrImage()}
         {loading &&
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size='large' color="white" />
@@ -163,7 +151,7 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
           <MaterialCommunityIcons name="camera-plus" size={30} color="white" />
           <Text style={styles.leftButtonText}>Add To Story</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.rightButton} onPress={() => console.log('hello')}>
+        <TouchableOpacity style={styles.rightButton} onPress={() => navigation.navigate('add-memory', { ...photo })}>
           <Text>Create Memory</Text>
           <Entypo name="chevron-right" size={25} color="white" />
         </TouchableOpacity>

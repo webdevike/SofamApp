@@ -1,12 +1,10 @@
-import React, { FunctionComponent as Component } from "react"
+import React, { FunctionComponent as Component, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, Image, View, ImageStyle, Dimensions, FlatList, ActivityIndicator, SafeAreaView, Text } from "react-native"
+import { ViewStyle, Image, View, ImageStyle, Dimensions, FlatList, ActivityIndicator, SafeAreaView, Text, RefreshControl } from "react-native"
 import { MemoryCard, ProgressiveImage, Screen } from "../components"
-import { color } from "../theme"
 import { gql, useQuery } from "@apollo/client"
 import { StatusBar } from 'expo-status-bar'
 import { Video } from "expo-av"
-import SkeletonContent from 'react-native-skeleton-content';
 
 const dimensions = Dimensions.get('window')
 const imageWidth = dimensions.width
@@ -47,7 +45,7 @@ const renderMemories = ({ item }) => {
           shouldPlay
           isLooping
           style={{
-            height: 250,
+            height: 400,
             flex: 1,
           }}
         />
@@ -71,13 +69,24 @@ const renderMemories = ({ item }) => {
 }
 
 export const MemoryScreen: Component = observer(function MemoryScreen() {
-  const { loading: memoryIsLoading, data: allMemories } = useQuery(MEMORIES)
+  const { loading: memoryIsLoading, data: allMemories, refetch, } = useQuery(MEMORIES)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = React.useCallback(async () => {
+    refetch()
+    if (memoryIsLoading) {
+      setRefreshing(true)
+    }
+    setRefreshing(false)
+  }, [])
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       {
         memoryIsLoading
           ? <ActivityIndicator />
           : <FlatList
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             data={allMemories?.memories}
             renderItem={renderMemories}
             keyExtractor={item => item.id}

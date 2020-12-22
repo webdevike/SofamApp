@@ -13,38 +13,30 @@ import {
 } from "react-native"
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { useNavigation } from "@react-navigation/native"
 import { ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
 import { StatusBar } from 'expo-status-bar';
-
-const USERS = gql`
-  {
-  users {
-    id
-    name
-    profilePicture
-    stories {
-      id
-      url
-    }
-  }
-}
-`
+import { USERS } from '../../graphql'
 
 const ROOT: ViewStyle = {
   flex: 1,
 }
 
+const WRAPPER: ViewStyle = {
+  flex: 1,
+  marginHorizontal: spacing[1]
+}
+
 const VIDEO: ViewStyle = {
-  height: 200,
+  height: 225,
   flex: 1,
   borderRadius: 20,
 }
 
 const IMAGE: ImageStyle = {
-  height: 200,
+  height: 225,
   flex: 1,
   borderRadius: 20,
   resizeMode: 'cover'
@@ -185,14 +177,16 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             isLoading={true}
             layout={firstLayout}
           />
-          : <FlatList
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            data={userAndStories?.users}
-            renderItem={renderUsers}
-            keyExtractor={item => item.id}
-            showsHorizontalScrollIndicator={false}
-            numColumns={2}
-          />
+          : <View style={WRAPPER}>
+            <FlatList
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              data={userAndStories?.users}
+              renderItem={renderUsers}
+              keyExtractor={item => item.id}
+              showsHorizontalScrollIndicator={false}
+              numColumns={2}
+              />
+          </View> 
       }
     </SafeAreaView>
   )

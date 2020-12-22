@@ -1,12 +1,13 @@
 import React, { FunctionComponent as Component, useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native"
-import { Button, Text } from "../../components"
+import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
+import { Button, ErrorPopup, Text } from "../../components"
 import { color, spacing, typography } from "../../theme"
 import { gql, useMutation, useReactiveVar } from "@apollo/client"
 import { saveString, loadString } from "../../utils/storage"
 import { accessTokenVar, cache } from '../../cache'
 import { useNavigation } from "@react-navigation/native"
+import { LOGIN } from '../../graphql'
 const patternBg = require("./pattern.png")
 
 interface Props {
@@ -79,12 +80,6 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
   letterSpacing: 2,
 }
 
-const LOGIN = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password)
-  }
-`
-
 const IS_LOGGED_IN = gql`
   {
     isLoggedIn @client
@@ -92,10 +87,26 @@ const IS_LOGGED_IN = gql`
 `
 
 export const LoginScreen: Component<Props> = observer(function LoginScreen(props) {
-  const [login] = useMutation(LOGIN)
+  const [login, { loading, error }] = useMutation(LOGIN)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const loggedIn = useReactiveVar(accessTokenVar)
+  const handleLogin = async () => {
+    const { data }: any = await login({
+      variables: {
+        email: email,
+        password: password,
+      },
+    })
+    saveString("@authToken", data.login)
+    accessTokenVar(true)
+    cache.writeQuery({
+      query: IS_LOGGED_IN,
+      data: {
+        isLoggedIn: loggedIn
+      },
+    })
+  }
   return (
     <View style={FULL}>
       <KeyboardAvoidingView
@@ -118,6 +129,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           placeholderTextColor="#BDBDBD"
           style={TEXT_INPUT}
           onChangeText={text => setPassword(text)}
+          secureTextEntry={true}
           value={password}
           placeholder="Password"
           autoCapitalize="none"
@@ -125,24 +137,11 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
         <Button
           style={LOGIN_BUTTON}
           textStyle={LOGIN_BUTTON_TEXT}
-          text="Login"
-          onPress={async () => {
-            const { data }: any = await login({
-              variables: {
-                email: email,
-                password: password,
-              },
-            })
-            saveString("@authToken", data.login)
-            accessTokenVar(true)
-            cache.writeQuery({
-              query: IS_LOGGED_IN,
-              data: {
-                isLoggedIn: loggedIn
-              },
-            })
-          }}
-        />
+          text={loading ? '' : 'Login'}
+          onPress={handleLogin}
+        >
+          {loading && <ActivityIndicator size="large" color="black" />}
+        </Button>
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Don't have an account?</Text>
           <TouchableOpacity onPress={() => props.navigation.navigate("register")}>
@@ -150,6 +149,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      {error && <ErrorPopup error={error} />}
     </View>
   )
 })

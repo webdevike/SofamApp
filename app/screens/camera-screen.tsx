@@ -72,52 +72,13 @@ export const CameraScreen: Component = observer(function CameraScreen() {
         quality: 0.1,
         videoExportPreset: 2
       })
+
       if(!result.cancelled) {
-        setLoading(true)
+        navigation.navigate('create', { ...result })
       }
 
-      const filename = result.uri.split('/').pop()
-
-      const file = new ReactNativeFile({
-        uri: result.uri,
-        name: filename,
-        type: 'image/jpeg'
-      })
-
-      const { data } = await createStory({
-        variables: {
-          url: file.uri,
-          file
-        },
-        optimisticResponse: {
-          __typename: 'Mutation',
-          createStory: {
-            __typename: "User",
-            id: Math.round(Math.random() * -1000000),
-            name: 'Isaac',
-            stories: [
-              {
-                id: Math.round(Math.random() * -1000000),
-                url: file.uri,
-              }
-            ]
-          }
-        },
-        update: (proxy, { data: { createStory } }) => {
-          const data = proxy.readQuery({ query: USERS })
-          proxy.writeQuery({
-            query: USERS,
-            data: {
-              users: [...data.users, createStory]
-            }
-          })
-        }
-      })
-      navigation.navigate('home')
-      uploadImage(file, data.createStory.signedRequest)
     } catch (error) {
-      setLoading(false)
-      Alert.alert(error)
+      console.log(error)
     }
   }
 
@@ -135,7 +96,7 @@ export const CameraScreen: Component = observer(function CameraScreen() {
       }
     }
     catch (error) {
-      Alert.alert(error)
+      console.log(error)
     }
   }
   const styles = StyleSheet.create({
