@@ -1,0 +1,7 @@
+  mutation createStory($file: Upload!) {
+    createStory(file: $file) {
+      id
+      url
+      signedRequest
+    }
+  }

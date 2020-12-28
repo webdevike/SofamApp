@@ -1,0 +1,12 @@
+query allStories {
+  stories {
+    id
+    signedRequest
+    url
+    user {
+      id
+      name
+      profilePicture
+    }
+  }
+}

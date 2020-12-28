@@ -22,6 +22,6 @@ export async function uploadImage(file: File, signedRequest: string) {
 
     return 'upload successful'
   } catch (error) {
-    Alert.alert(error)
+    console.log(error)
   }
 }

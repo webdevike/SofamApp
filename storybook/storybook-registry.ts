@@ -1,3 +1,4 @@
+require("../app/components/ErrorPopup/ErrorPopup.story")
 require("../app/components/StoryCard/StoryCard.story")
 require("../app/components/ProgressiveImage/ProgressiveImage.story")
 require("../app/components/MemoryCard/MemoryCard.story")

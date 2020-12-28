@@ -67,6 +67,6 @@ export const handleCreateStory = async (photo, createStory, navigation) => {
       Alert.alert('someting when wrong')
     }
   } catch (error) {
-    Alert.alert(error)
+    console.log(error)
   }
 }

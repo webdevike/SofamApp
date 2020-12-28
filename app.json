@@ -7,15 +7,22 @@
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+      "package": "com.webdevike.sofam",
+      "versionCode": 3,
+      "permissions": [
+        "CAMERA"
+      ]
     },
     "ios": {
       "bundleIdentifier": "com.webdevike.sofam",

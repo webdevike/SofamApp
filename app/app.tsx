@@ -23,6 +23,7 @@ import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
 import { loadString } from "./utils/storage"
 import { Platform } from "react-native"
+import * as Updates from 'expo-updates'
 
 enableScreens()
 

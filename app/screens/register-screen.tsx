@@ -1,7 +1,7 @@
 import React, { FunctionComponent as Component, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native"
-import { Button, Text } from "../components"
+import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native"
+import { Button, ErrorPopup, Text } from "../components"
 import { color, spacing, typography } from "../theme"
 import { gql, useMutation, useReactiveVar } from "@apollo/client"
 import { saveString, loadString, save, load } from "../utils/storage"
@@ -11,6 +11,8 @@ import * as ImagePicker from 'expo-image-picker'
 import { ReactNativeFile } from 'apollo-upload-client'
 import { uploadImage } from "../utils/uploadImage"
 import { Camera } from 'expo-camera';
+import { IS_LOGGED_IN, USERS } from "../graphql"
+import { GetUsersDocument, GetUsersQuery, useRegisterMutation } from "../generated/graphql"
 
 // Styles
 const TEXT: TextStyle = {
@@ -96,129 +98,88 @@ const IMAGE_PICKER_LABEL: ViewStyle = {
   marginBottom: spacing[2]
 }
 
-const REGISTER_MUTATION = gql`
-  mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload!) {
-    register(data: {
-      email: $email, 
-      password: $password,
-      name: $name,
-      secretCode: $secretCode
-      profilePicture: $profilePicture
-      }) {
-        accessToken
-        signedRequest
-        user {
-          id
-          name
-          profilePicture
-        }
-      }
-  }
-`
-
-const USERS = gql`
-  {
-  users {
-    id
-    name
-    profilePicture
-    stories {
-      id
-      url
-    }
-  }
-}
-`
-const IS_LOGGED_IN = gql`
-  {
-    isLoggedIn @client
-  }
-`
 interface FileDataObject {
   uri: string
+  type: string
 }
 
 export const RegisterScreen: Component = observer(function RegisterScreen(props) {
-  const [register] = useMutation(REGISTER_MUTATION)
+  const [register, { loading, error }] = useRegisterMutation()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [secretCode, setsecretCode] = useState("")
-  const [pickerResult, setPickerResult] = useState()
+  const [hasPermission, setHasPermission] = useState(null)
+  const [pickerResult, setPickerResult] = useState<FileDataObject>()
   const loggedIn = useReactiveVar(accessTokenVar)
 
+
   const pickImage = async (screen: string) => {
-    try {
-      const permissionResult = await ImagePicker.requestCameraRollPermissionsAsync()
 
-      if (permissionResult.granted === false) {
-        alert("Permission to access camera roll is required!")
-        return
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } = await Camera.requestPermissionsAsync()
+        if (status !== 'granted') {
+          Alert.alert('Sorry, we need camera roll permissions to make this work!')
+        }
+        setHasPermission(status === 'granted')
       }
+    })()
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.1,
-        videoExportPreset: 2
-      })
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.1,
+      videoExportPreset: 2
+    })
 
-      if (!result.cancelled) {
-        setPickerResult(result)
-      }
-    } catch (error) {
-      Alert.alert(error)
+    if (!result.cancelled) {
+      setPickerResult(result)
     }
   }
 
   const handleRegister = async () => {
-      try {
 
-        const filename = pickerResult?.uri.split('/').pop()
+    const filename = pickerResult?.uri.split('/').pop()
 
-        const file = new ReactNativeFile({
-          uri: pickerResult?.uri,
-          name: filename,
-          type: pickerResult?.type
-        })
-        
-        const { data }: any = await register({
-          variables: {
-            email: email,
-            password: password,
-            name,
-            secretCode,
-            profilePicture: file
-          },
-          // update: (proxy, { data: { register } }) => {
-          //   const data = proxy.readQuery({ query: USERS })
-          //   proxy.writeQuery({
-          //     query: USERS,
-          //     data: {
-          //       users: [...data.users, register]
-          //     }
-          //   })
-          // }
-        })
-        uploadImage(file, data.register.signedRequest)
-        saveString("@authToken", data.register.accessToken)
-        accessTokenVar(true)
-        cache.writeQuery({
-          query: IS_LOGGED_IN,
+    const file = new ReactNativeFile({
+      uri: pickerResult?.uri,
+      name: filename,
+      type: 'image/jpeg'
+    })
+
+    const { data }: any = await register({
+      variables: {
+        email: email,
+        password: password,
+        name,
+        secretCode: 'Wehavethecoolestfamilyontheplanet!!',
+        profilePicture: file
+      },
+      update: (proxy, { data: { register } }) => {
+        const data: GetUsersQuery = proxy.readQuery({ query: GetUsersDocument })
+        proxy.writeQuery({
+          query: GetUsersDocument,
           data: {
-            isLoggedIn: loggedIn
-          },
+            users: [...data.users, register]
+          }
         })
-        
-      } catch (error) {
-        Alert.alert(error)
-
       }
-
+    })
+    uploadImage(file, data.register.signedRequest)
+    saveString("@authToken", data.register.accessToken)
+    accessTokenVar(true)
+    cache.writeQuery({
+      query: IS_LOGGED_IN,
+      data: {
+        isLoggedIn: loggedIn
+      },
+    })
   }
   return (
     <View style={FULL}>
+      {error && <ErrorPopup error={error} />}
       <KeyboardAvoidingView
         style={CONTAINER}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -252,7 +213,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           placeholder="Name"
           autoCapitalize="none"
         />
-        <TextInput
+        {/* <TextInput
           placeholderTextColor="#BDBDBD"
           style={TEXT_INPUT}
           secureTextEntry={true}
@@ -260,29 +221,24 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           value={secretCode}
           placeholder="Secret Code"
           autoCapitalize="none"
-        />
-        <Text style={IMAGE_PICKER_LABEL}>Upload profile Picture</Text>
+        /> */}
+        <Text style={IMAGE_PICKER_LABEL}>{pickerResult ? 'Nice! Totes cute 😉' : 'Pick a selfie for your profile picture! 📸'}</Text>
         <View style={IMAGE_PICKER_CONTAINER}>
-          {/* <Button
-            style={IMAGE_PICKER_BUTTON}
-            textStyle={LOGIN_BUTTON_TEXT}
-            text="Take A Picture"
-            onPress={pickImage}
-          /> */}
-          <Button
+          {pickerResult ? <Image source={{ uri: pickerResult.uri }} style={{ height: 225, width: 250, marginBottom: spacing[2] }} /> : <Button
             style={IMAGE_PICKER_BUTTON}
             textStyle={LOGIN_BUTTON_TEXT}
             text="Pick An Image"
             onPress={pickImage}
-          />
+          />}
         </View>
-        
-        <Button
+         <Button
           style={LOGIN_BUTTON}
           textStyle={LOGIN_BUTTON_TEXT}
-          text="Signup"
+          text={loading ? '' : 'Signup'}
           onPress={handleRegister}
-        />
+        >
+          {loading && <ActivityIndicator size="large" color="white" />}
+        </Button>
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Already have an Account?</Text>
           <TouchableOpacity onPress={() => props.navigation.navigate("login")}>

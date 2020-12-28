@@ -1,0 +1,25 @@
+mutation register(
+    $email: String!
+    $password: String!
+    $name: String!
+    $secretCode: String!
+    $profilePicture: Upload!
+  ) {
+    register(
+      data: {
+        email: $email
+        password: $password
+        name: $name
+        secretCode: $secretCode
+        profilePicture: $profilePicture
+      }
+    ) {
+      accessToken
+      signedRequest
+      user {
+        id
+        name
+        profilePicture
+      }
+    }
+  }
