@@ -1,14 +1,14 @@
 import React, { FunctionComponent as Component, useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, ImageStyle, TextStyle, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
+import { ViewStyle, View, TextInput, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Button, ErrorPopup, Text } from "../../components"
 import { color, spacing, typography } from "../../theme"
-import { gql, useMutation, useReactiveVar } from "@apollo/client"
-import { saveString, loadString } from "../../utils/storage"
+import { useReactiveVar } from "@apollo/client"
+import { saveString } from "../../utils/storage"
 import { accessTokenVar, cache } from '../../cache'
-import { useNavigation } from "@react-navigation/native"
-import { LOGIN } from '../../graphql'
-const patternBg = require("./pattern.png")
+import { IS_LOGGED_IN } from '../../graphql'
+import { StatusBar } from "expo-status-bar"
+import { useLoginMutation } from "../../generated/graphql"
 
 interface Props {
   navigation: any
@@ -80,14 +80,9 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
   letterSpacing: 2,
 }
 
-const IS_LOGGED_IN = gql`
-  {
-    isLoggedIn @client
-  }
-`
 
 export const LoginScreen: Component<Props> = observer(function LoginScreen(props) {
-  const [login, { loading, error }] = useMutation(LOGIN)
+  const [login, { loading, error }] = useLoginMutation()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const loggedIn = useReactiveVar(accessTokenVar)
@@ -140,7 +135,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           text={loading ? '' : 'Login'}
           onPress={handleLogin}
         >
-          {loading && <ActivityIndicator size="large" color="black" />}
+          {loading && <ActivityIndicator size="large" color="white" />}
         </Button>
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Don't have an account?</Text>
@@ -150,6 +145,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
         </View>
       </KeyboardAvoidingView>
       {error && <ErrorPopup error={error} />}
+      <StatusBar style="light" />
     </View>
   )
 })

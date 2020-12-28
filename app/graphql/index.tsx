@@ -82,11 +82,11 @@ query allMemories {
 }
 `
 
-// // * Local Cache
-// const IS_LOGGED_IN = gql`
-//   query isLoggedIn{
-//     isLoggedIn @client
-//   }
-// `
+// * Local Cache
+const IS_LOGGED_IN = gql`
+  query isLoggedIn{
+    isLoggedIn @client
+  }
+`
 
-export { CREATE_STORY, REGISTER, LOGIN, USERS, CREATE_MEMORY, MEMORIES }
+export { CREATE_STORY, REGISTER, LOGIN, USERS, CREATE_MEMORY, MEMORIES, IS_LOGGED_IN }

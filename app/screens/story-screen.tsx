@@ -32,7 +32,6 @@ const STORY_COUNT: ViewStyle = {
 
 export const StoryScreen: Component = observer(function StoryScreen({ route }) {
   const navigation = useNavigation()
-  const storyCount = route.params.stories.length
   return (
     <View style={IMAGE_OVERLAY_CONTAINER as ViewStyle}>
       <ImageSlider entries={route.params.stories}/>

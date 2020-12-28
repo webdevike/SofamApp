@@ -13,12 +13,11 @@ import {
 } from "react-native"
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
-import { useQuery } from "@apollo/client"
 import { useNavigation } from "@react-navigation/native"
 import { ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
 import { StatusBar } from 'expo-status-bar';
-import { USERS } from '../../graphql'
+import { useGetUsersQuery } from "../../generated/graphql"
 
 const ROOT: ViewStyle = {
   flex: 1,
@@ -70,7 +69,7 @@ const OVERLAY_TEXT: TextStyle = {
 
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const { loading, data: userAndStories, refetch } = useQuery(USERS)
+  const { loading, data: userAndStories, refetch } = useGetUsersQuery()
   const [refreshing, setRefreshing] = useState(false)
 
   const onRefresh = React.useCallback(async () => {

@@ -42,6 +42,7 @@ export type Story = {
   id: Scalars['ID'];
   url: Scalars['String'];
   signedRequest?: Maybe<Scalars['String']>;
+  user?: Maybe<User>;
 };
 
 export type User = {
@@ -55,6 +56,7 @@ export type User = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createGroup?: Maybe<Scalars['String']>;
   login?: Maybe<Scalars['String']>;
   createMemory?: Maybe<Memory>;
   updateMemory?: Maybe<Memory>;
@@ -143,6 +145,13 @@ export type File = {
   url?: Maybe<Scalars['String']>;
 };
 
+export type Group = {
+  __typename?: 'Group';
+  id: Scalars['ID'];
+  name?: Maybe<Scalars['String']>;
+  users?: Maybe<Array<Maybe<User>>>;
+};
+
 export type CreateMemoryMutationVariables = Exact<{
   file: Scalars['Upload'];
   title: Scalars['String'];
@@ -215,6 +224,21 @@ export type AllMemoriesQuery = (
   )>>> }
 );
 
+export type AllStoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllStoriesQuery = (
+  { __typename?: 'Query' }
+  & { stories?: Maybe<Array<Maybe<(
+    { __typename?: 'Story' }
+    & Pick<Story, 'id' | 'signedRequest' | 'url'>
+    & { user?: Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'profilePicture'>
+    )> }
+  )>>> }
+);
+
 export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -226,21 +250,6 @@ export type GetUsersQuery = (
     & { stories?: Maybe<Array<Maybe<(
       { __typename?: 'Story' }
       & Pick<Story, 'id' | 'url'>
-    )>>> }
-  )>>> }
-);
-
-export type Unnamed_1_QueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type Unnamed_1_Query = (
-  { __typename?: 'Query' }
-  & { users?: Maybe<Array<Maybe<(
-    { __typename?: 'User' }
-    & Pick<User, 'name'>
-    & { stories?: Maybe<Array<Maybe<(
-      { __typename?: 'Story' }
-      & Pick<Story, 'url'>
     )>>> }
   )>>> }
 );
@@ -429,6 +438,45 @@ export function useAllMemoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type AllMemoriesQueryHookResult = ReturnType<typeof useAllMemoriesQuery>;
 export type AllMemoriesLazyQueryHookResult = ReturnType<typeof useAllMemoriesLazyQuery>;
 export type AllMemoriesQueryResult = Apollo.QueryResult<AllMemoriesQuery, AllMemoriesQueryVariables>;
+export const AllStoriesDocument = gql`
+    query allStories {
+  stories {
+    id
+    signedRequest
+    url
+    user {
+      id
+      name
+      profilePicture
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllStoriesQuery__
+ *
+ * To run a query within a React component, call `useAllStoriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllStoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllStoriesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAllStoriesQuery(baseOptions?: Apollo.QueryHookOptions<AllStoriesQuery, AllStoriesQueryVariables>) {
+        return Apollo.useQuery<AllStoriesQuery, AllStoriesQueryVariables>(AllStoriesDocument, baseOptions);
+      }
+export function useAllStoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllStoriesQuery, AllStoriesQueryVariables>) {
+          return Apollo.useLazyQuery<AllStoriesQuery, AllStoriesQueryVariables>(AllStoriesDocument, baseOptions);
+        }
+export type AllStoriesQueryHookResult = ReturnType<typeof useAllStoriesQuery>;
+export type AllStoriesLazyQueryHookResult = ReturnType<typeof useAllStoriesLazyQuery>;
+export type AllStoriesQueryResult = Apollo.QueryResult<AllStoriesQuery, AllStoriesQueryVariables>;
 export const GetUsersDocument = gql`
     query getUsers {
   users {
@@ -467,38 +515,3 @@ export function useGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetUsersQueryHookResult = ReturnType<typeof useGetUsersQuery>;
 export type GetUsersLazyQueryHookResult = ReturnType<typeof useGetUsersLazyQuery>;
 export type GetUsersQueryResult = Apollo.QueryResult<GetUsersQuery, GetUsersQueryVariables>;
-export const Document = gql`
-    {
-  users {
-    name
-    stories {
-      url
-    }
-  }
-}
-    `;
-
-/**
- * __useQuery__
- *
- * To run a query within a React component, call `useQuery` and pass it any options that fit your needs.
- * When your component renders, `useQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useQuery({
- *   variables: {
- *   },
- * });
- */
-export function useQuery(baseOptions?: Apollo.QueryHookOptions<Query, QueryVariables>) {
-        return Apollo.useQuery<Query, QueryVariables>(Document, baseOptions);
-      }
-export function useLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Query, QueryVariables>) {
-          return Apollo.useLazyQuery<Query, QueryVariables>(Document, baseOptions);
-        }
-export type QueryHookResult = ReturnType<typeof useQuery>;
-export type LazyQueryHookResult = ReturnType<typeof useLazyQuery>;
-export type QueryResult = Apollo.QueryResult<Query, QueryVariables>;

@@ -10,6 +10,7 @@ import { ReactNativeFile } from 'apollo-upload-client'
 import { uploadImage } from "../utils/uploadImage"
 import { CREATE_STORY, USERS } from "../graphql"
 import { Video } from "expo-av"
+import { useCreateStoryMutation } from "../generated/graphql"
 
 const styles = StyleSheet.create({
   buttonContainer: {
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
 
 export const CreateScreen: Component = observer(function CreateScreen({ route }) {
   const photo = route.params
-  const [createStory, { error, loading }] = useMutation(CREATE_STORY)
+  const [createStory, { error, loading }] = useCreateStoryMutation()
   const navigation = useNavigation()
 
   const handleCreateStory = async () => {
@@ -86,29 +87,29 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
         url: file.uri,
         file
       },
-      // optimisticResponse: {
-      //   __typename: 'Mutation',
-      //   createStory: {
-      //     __typename: "User",
-      //     id: Math.round(Math.random() * -1000000),
-      //     name: 'Isaac',
-      //     stories: [
-      //       {
-      //         id: Math.round(Math.random() * -1000000),
-      //         url: file.uri,
-      //       }
-      //     ]
-      //   }
-      // },
-      // update: (proxy, { data: { createStory } }) => {
-      //   const data = proxy.readQuery({ query: USERS })
-      //   proxy.writeQuery({
-      //     query: USERS,
-      //     data: {
-      //       users: [...data.users, createStory]
-      //     }
-      //   })
-      // }
+      optimisticResponse: {
+        __typename: 'Mutation',
+        createStory: {
+          __typename: "User",
+          id: Math.round(Math.random() * -1000000).toString(),
+          name: 'Isaac',
+          stories: [
+            {
+              id: Math.round(Math.random() * -1000000).toString(),
+              url: file.uri,
+            }
+          ]
+        }
+      },
+      update: (proxy, { data: { createStory } }) => {
+        const data = proxy.readQuery({ query: USERS })
+        proxy.writeQuery({
+          query: USERS,
+          data: {
+            users: [...data.users, createStory]
+          }
+        })
+      }
     })
     await uploadImage(file, data.createStory.signedRequest)
     if (!loading && !error) navigation.navigate('home')
