@@ -95,7 +95,7 @@ export function PrimaryNavigator(props) {
         <TouchableOpacity onPress={() => props.navigation.navigate("home")}>
           <Octicons name="home" size={30} color={currentScreen === 0 ? color.palette.orange : color.palette.black} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => props.navigation.navigate("memory")}>
+        <TouchableOpacity onPress={() => props.navigation.navigate("demo")}>
           <Octicons name="file-media" size={30} color={currentScreen === 3 ? color.palette.orange : color.palette.black} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => {

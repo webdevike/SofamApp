@@ -1,195 +1,115 @@
-import React, { FunctionComponent as Component } from "react"
-import { Image, ImageStyle, Platform, TextStyle, View, ViewStyle } from "react-native"
-import * as ImagePicker from 'expo-image-picker'
-import { useNavigation } from "@react-navigation/native"
-
 import { observer } from "mobx-react-lite"
-import { BulletItem, Button, Header, Text, Screen, Wallpaper } from "../../components"
-import { color, spacing } from "../../theme"
-// import CREATE_STORY from '../../graphql/story/mutation/createStory.js'
-import { useMutation, gql } from "@apollo/client"
-import { ReactNativeFile } from 'apollo-upload-client'
-export const logoIgnite = require("./logo-ignite.png")
-export const heart = require("./heart.png")
-const CREATE_STORY = gql`
-  mutation createStory($name: String!, $type: String!, $uri: String!) {
-    createStory(name: $name, type: $type, uri: $uri) {
-      id
-      createdAt
-      file {
-        name
-        type
-        uri
-      }
-    }
-  }
-`
+import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import * as Permissions from 'expo-permissions';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, Button, Platform } from 'react-native';
 
-const UPLOAD_FILE = gql`
-mutation uploadFile($file: Upload!) {
-  uploadFile(file: $file) {
-    filename
-    mimetype
-    encoding
-    signedRequest
-    url
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+// Can use this function below, OR use Expo's Push Notification Tool-> https://expo.io/notifications
+async function sendPushNotification(expoPushToken) {
+  console.log(expoPushToken)
+  const message = {
+    to: 'ExponentPushToken[3B_JRJMBsOQx9RisWK376B]',
+    sound: 'default',
+    title: 'Original Title',
+    body: 'And here is the body!',
+    data: { data: 'goes here' },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+async function registerForPushNotificationsAsync() {
+  let token;
+  if (Constants.isDevice) {
+    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    alert('Must use physical device for Push Notifications');
   }
-}
-`
-const FULL: ViewStyle = { flex: 1 }
-const CONTAINER: ViewStyle = {
-  backgroundColor: color.transparent,
-  paddingHorizontal: spacing[4],
-}
-const DEMO: ViewStyle = {
-  paddingVertical: spacing[4],
-  paddingHorizontal: spacing[4],
-  backgroundColor: "#5D2555",
-}
-const BOLD: TextStyle = { fontWeight: "bold" }
-const DEMO_TEXT: TextStyle = {
-  ...BOLD,
-  fontSize: 13,
-  letterSpacing: 2,
-}
-const HEADER: TextStyle = {
-  paddingTop: spacing[3],
-  paddingBottom: spacing[5] - 1,
-  paddingHorizontal: 0,
-}
-const HEADER_TITLE: TextStyle = {
-  ...BOLD,
-  fontSize: 12,
-  lineHeight: 15,
-  textAlign: "center",
-  letterSpacing: 1.5,
-}
-const TITLE: TextStyle = {
-  ...BOLD,
-  fontSize: 28,
-  lineHeight: 38,
-  textAlign: "center",
-  marginBottom: spacing[5],
-}
-const TAGLINE: TextStyle = {
-  color: "#BAB6C8",
-  fontSize: 15,
-  lineHeight: 22,
-  marginBottom: spacing[4] + spacing[1],
-}
-const IGNITE: ImageStyle = {
-  marginVertical: spacing[6],
-  alignSelf: "center",
-}
-const LOVE_WRAPPER: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  alignSelf: "center",
-}
-const LOVE: TextStyle = {
-  color: "#BAB6C8",
-  fontSize: 15,
-  lineHeight: 22,
-}
-const HEART: ImageStyle = {
-  marginHorizontal: spacing[2],
-  width: 10,
-  height: 10,
-  resizeMode: "contain",
-}
-const HINT: TextStyle = {
-  color: "#BAB6C8",
-  fontSize: 12,
-  lineHeight: 15,
-  marginVertical: spacing[2],
+
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  return token;
 }
 
 export const DemoScreen: Component = observer(function DemoScreen() {
-  const navigation = useNavigation()
-  const goBack = () => navigation.goBack()
-  const [createStory] = useMutation(CREATE_STORY)
-  const [uploadFile] = useMutation(UPLOAD_FILE)
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
 
-  function uploadImage(file, signedRequest, url) {
-    fetch(signedRequest, {
-      method: "PUT",
-      body: file,
-      headers: {
-        'Content-type': "image/jpeg"
-      }
-    }).then((res) => {
-      console.log(res, url)
-    }).catch((e) => {
-      console.log(e)
-    })
-  }
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
 
-  const _pickImage = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestCameraRollPermissionsAsync()
+    // This listener is fired whenever a notification is received while the app is foregrounded
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
 
-      if (permissionResult.granted === false) {
-        alert("Permission to access camera roll is required!")
-        return
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      })
+    // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
 
-      const filename = result.uri.split('/').pop()
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
 
-      const file = new ReactNativeFile({
-        uri: result.uri,
-        name: filename,
-        type: result.type
-      })
-
-      const { data } = await uploadFile({
-        variables: {
-          file
-        }
-      })
-
-      uploadImage(file, data.uploadFile.signedRequest, data.uploadFile.url)
-    } catch (E) {
-      console.log(E, 'error is here!')
-    }
-  }
-
-  return (
-    <View style={FULL}>
-      <Wallpaper />
-      <Screen style={CONTAINER} preset="scroll" backgroundColor={color.transparent}>
-        <Header
-          headerTx="demoScreen.howTo"
-          leftIcon="back"
-          onLeftPress={goBack}
-          style={HEADER}
-          titleStyle={HEADER_TITLE}
-        />
-        <Text style={TITLE} preset="header" tx="demoScreen.title" />
-        <Text style={TAGLINE} tx="demoScreen.tagLine" />
-        <BulletItem text="Load up Reactotron!  You can inspect your app, view the events, interact, and so much more!" />
-        <BulletItem text="Integrated here, Navigation with State, TypeScript, Storybook, Solidarity, and i18n." />
-        <View>
-          <Button
-            style={DEMO}
-            textStyle={DEMO_TEXT}
-            tx="demoScreen.reactotron"
-            onPress={_pickImage}
-          />
-          <Text style={HINT} tx={`demoScreen.${Platform.OS}ReactotronHint`} />
-        </View>
-        <Image source={logoIgnite} style={IGNITE} />
-        <View style={LOVE_WRAPPER}>
-          <Text style={LOVE} text="Made with" />
-          <Image source={heart} style={HEART} />
-          <Text style={LOVE} text="by Infinite Red" />
-        </View>
-      </Screen>
+return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'space-around',
+      }}>
+      <Text>Your expo push token: {expoPushToken}</Text>
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Title: {notification && notification.request.content.title} </Text>
+        <Text>Body: {notification && notification.request.content.body}</Text>
+        <Text>Data: {notification && JSON.stringify(notification.request.content.data)}</Text>
+      </View>
+      <Button
+        title="Press to Send Notification"
+        onPress={async () => {
+          await sendPushNotification(expoPushToken);
+        }}
+      />
     </View>
   )
 })
