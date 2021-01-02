@@ -1,4 +1,4 @@
-import React, { FunctionComponent as Component } from "react"
+import React, { FunctionComponent as Component, useEffect, useState } from "react"
 import { View, ViewStyle, TextStyle, Image, ImageStyle } from "react-native"
 import { HeaderProps } from "./header.props"
 import { Button } from "../button/button"
@@ -8,6 +8,8 @@ import { color, spacing } from "../../theme"
 import { translate } from "../../i18n/"
 import { ProgressiveImage } from ".."
 import { currentUser } from "../../utils/currentUser"
+import * as Updates from 'expo-updates'
+import { TouchableOpacity } from "react-native-gesture-handler"
 
 // static styles
 const ROOT: ViewStyle = {
@@ -47,34 +49,63 @@ export const Header: Component<HeaderProps> = props => {
   } = props
   const header = headerText || (headerTx && translate(headerTx)) || ""
 
+  const [update, setUpdate] = useState({})
+
+  useEffect(() => {
+    (async () => {
+      if (!__DEV__) {
+        const update = await Updates.checkForUpdateAsync()
+        if (update) setUpdate(update)
+      }
+    })()
+  }, [])
+
+  const updateApp = async() => {
+    try {
+      if (update.isAvailable) {
+        await Updates.fetchUpdateAsync()
+        // ... notify user of update ...
+        await Updates.reloadAsync()
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const user = currentUser()
 
   return (
-    <View style={{ ...ROOT, ...style }}>
-      {leftIcon ? (
-        <Button preset="link" onPress={onLeftPress}>
-          <Icon icon={leftIcon} />
-        </Button>
-      ) : (
-        <View style={LEFT} />
-      )}
-      <View style={TITLE_MIDDLE}>
-        <Text style={{ ...TITLE, ...titleStyle }} text={header} />
+    <>
+      <View style={{ ...ROOT, ...style }}>
+        {leftIcon ? (
+          <Button preset="link" onPress={onLeftPress}>
+            <Icon icon={leftIcon} />
+          </Button>
+        ) : (
+          <View style={LEFT} />
+        )}
+        <View style={TITLE_MIDDLE}>
+          <Text style={{ ...TITLE, ...titleStyle }} text={header} />
+        </View>
+        {rightIcon ? (
+          <Button preset="link" onPress={onRightPress}>
+
+            <View>
+              <ProgressiveImage
+                source={{ uri: user?.me?.profilePicture || '"https://images.unsplash.com/photo-1529405643518-5cf24fddfc0b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"' }}
+                style={PROFILE_IMAGE} />
+            </View>
+
+          </Button>
+        ) : (
+          <View style={RIGHT} />
+        )}
       </View>
-      {rightIcon ? (
-        <Button preset="link" onPress={onRightPress}>
+      {update.isAvailable && <TouchableOpacity onPress={updateApp} style={{ backgroundColor: color.palette.lightGreen, padding: spacing[2], marginBottom: spacing[2] }}>
+        <Text style={{ color: 'white', textAlign: 'center' }}>Click me to update App
+        </Text>
+      </TouchableOpacity> }
 
-          <View>
-            <ProgressiveImage
-              thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
-              source={{ uri: user?.me?.profilePicture }}
-              style={PROFILE_IMAGE} />
-          </View>
-
-        </Button>
-      ) : (
-        <View style={RIGHT} />
-      )}
-    </View>
+    </>
   )
 }

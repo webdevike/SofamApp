@@ -12,7 +12,8 @@ import { ReactNativeFile } from 'apollo-upload-client'
 import { uploadImage } from "../utils/uploadImage"
 import { Camera } from 'expo-camera';
 import { IS_LOGGED_IN, USERS } from "../graphql"
-import { GetUsersDocument, GetUsersQuery, useRegisterMutation } from "../generated/graphql"
+import { GetUsersDocument, GetUsersQuery, useGetUsersQuery, useRegisterMutation } from "../generated/graphql"
+import { useNavigation } from "@react-navigation/native"
 
 // Styles
 const TEXT: TextStyle = {
@@ -104,7 +105,14 @@ interface FileDataObject {
 }
 
 export const RegisterScreen: Component = observer(function RegisterScreen(props) {
-  const [register, { loading, error }] = useRegisterMutation()
+  const [register, { loading, error }] = useRegisterMutation({
+    onCompleted: () => {
+      accessTokenVar(true)
+    },
+    refetchQueries: [
+      { query: GetUsersDocument }
+    ]
+  })
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
@@ -112,6 +120,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [hasPermission, setHasPermission] = useState(null)
   const [pickerResult, setPickerResult] = useState<FileDataObject>()
   const loggedIn = useReactiveVar(accessTokenVar)
+  const navigation = useNavigation()
 
 
   const pickImage = async (screen: string) => {
@@ -130,7 +139,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.1,
+      quality: 0.2,
       videoExportPreset: 2
     })
 
@@ -155,27 +164,15 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         password: password,
         name,
         secretCode: 'Wehavethecoolestfamilyontheplanet!!',
-        profilePicture: file
-      },
-      update: (proxy, { data: { register } }) => {
-        const data: GetUsersQuery = proxy.readQuery({ query: GetUsersDocument })
-        proxy.writeQuery({
-          query: GetUsersDocument,
-          data: {
-            users: [...data.users, register]
-          }
-        })
+        // profilePicture: file
       }
     })
-    uploadImage(file, data.register.signedRequest)
-    saveString("@authToken", data.register.accessToken)
-    accessTokenVar(true)
-    cache.writeQuery({
-      query: IS_LOGGED_IN,
-      data: {
-        isLoggedIn: loggedIn
-      },
-    })
+    
+    // console.log("🚀 ~ file: register-screen.tsx ~ line 162 ~ handleRegister ~ data", data)
+    if (!error) {
+      // uploadImage(file, data.register.signedRequest)
+      await saveString("@authToken", data.register.accessToken)
+    }
   }
   return (
     <View style={FULL}>
@@ -222,23 +219,26 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           placeholder="Secret Code"
           autoCapitalize="none"
         /> */}
-        <Text style={IMAGE_PICKER_LABEL}>{pickerResult ? 'Nice! Totes cute 😉' : 'Pick a selfie for your profile picture! 📸'}</Text>
-        <View style={IMAGE_PICKER_CONTAINER}>
+        {/* <Text style={IMAGE_PICKER_LABEL}>{pickerResult ? 'Nice! Totes cute 😉' : 'Pick a selfie for your profile picture! 📸'}</Text> */}
+        {/* <View style={IMAGE_PICKER_CONTAINER}>
           {pickerResult ? <Image source={{ uri: pickerResult.uri }} style={{ height: 225, width: 250, marginBottom: spacing[2] }} /> : <Button
             style={IMAGE_PICKER_BUTTON}
             textStyle={LOGIN_BUTTON_TEXT}
             text="Pick An Image"
             onPress={pickImage}
           />}
-        </View>
-         <Button
-          style={LOGIN_BUTTON}
-          textStyle={LOGIN_BUTTON_TEXT}
-          text={loading ? '' : 'Signup'}
-          onPress={handleRegister}
-        >
-          {loading && <ActivityIndicator size="large" color="white" />}
-        </Button>
+        </View> */}
+        {/* {pickerResult &&
+        } */}
+          <Button
+            style={LOGIN_BUTTON}
+            textStyle={LOGIN_BUTTON_TEXT}
+            text={loading ? '' : 'Signup'}
+            onPress={handleRegister}
+          >
+            {loading && <ActivityIndicator size="small" color="white" />}
+          </Button>
+
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Already have an Account?</Text>
           <TouchableOpacity onPress={() => props.navigation.navigate("login")}>

@@ -93,14 +93,9 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
         password: password,
       },
     })
+    console.log(data, 'login data')
     saveString("@authToken", data.login)
     accessTokenVar(true)
-    cache.writeQuery({
-      query: IS_LOGGED_IN,
-      data: {
-        isLoggedIn: loggedIn
-      },
-    })
   }
   return (
     <View style={FULL}>

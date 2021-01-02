@@ -134,7 +134,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       userId,
-      profilePicture: user?.me.profilePicture,
+      profilePicture: user?.me.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif',
       expoPushToken
     }).catch((e) => {
       console.log(e)
@@ -150,7 +150,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
         <View style={MESSAGES_CONTAINER}>
           {messages?.map(msg =>
             <View style={msg.userId ===  userId ? SENT : RECIEVED } key={msg.id}>
-              <Image style={PROFILE_IMAGE} source={{ uri: msg.profilePicture }} />
+              <Image style={PROFILE_IMAGE} source={{ uri: msg.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif' }} />
               <View style={msg.userId ===  userId ? BUBBLE_SENT : BUBBLE_RECIEVED}>
                 <Text text={msg.text} style={TEXT} />
               </View>
