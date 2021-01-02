@@ -9,9 +9,10 @@ import { currentUser } from "../utils/currentUser"
 
 export const ProfileScreen: Component = observer(function ProfileScreen() {
   const logout = async () => {
-    accessTokenVar(false)
-    await clear()
+    cache.evict({ fieldName: 'me' })
     cache.gc()
+    await clear()
+    accessTokenVar(false)
   }
 
   const user = currentUser()
@@ -51,8 +52,7 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
       <View style={CONTENT_CONTAINER}>
         <View>
           <ProgressiveImage
-            thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
-            source={{ uri: user?.me?.profilePicture }}
+            source={{ uri: user?.me?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif' }}
             style={PROFILE_IMAGE} />
           <Text>{user?.me?.name}</Text>
         </View>

@@ -3,7 +3,7 @@ mutation register(
     $password: String!
     $name: String!
     $secretCode: String!
-    $profilePicture: Upload!
+    $profilePicture: Upload
   ) {
     register(
       data: {

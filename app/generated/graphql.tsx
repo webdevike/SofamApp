@@ -126,7 +126,7 @@ export type RegisterInput = {
   password: Scalars['String'];
   name: Scalars['String'];
   secretCode: Scalars['String'];
-  profilePicture: Scalars['Upload'];
+  profilePicture?: Maybe<Scalars['Upload']>;
 };
 
 export type Register = {
@@ -197,7 +197,7 @@ export type RegisterMutationVariables = Exact<{
   password: Scalars['String'];
   name: Scalars['String'];
   secretCode: Scalars['String'];
-  profilePicture: Scalars['Upload'];
+  profilePicture?: Maybe<Scalars['Upload']>;
 }>;
 
 
@@ -361,7 +361,7 @@ export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const RegisterDocument = gql`
-    mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload!) {
+    mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload) {
   register(data: {email: $email, password: $password, name: $name, secretCode: $secretCode, profilePicture: $profilePicture}) {
     accessToken
     signedRequest
