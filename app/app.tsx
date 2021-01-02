@@ -62,8 +62,9 @@ const App: Component<{}> = () => {
   )
 
   const uploadLink = createUploadLink({
-    uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
-    // uri: 'https://infinite-wave-95577.herokuapp.com/graphql'
+    // uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
+    // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
+    uri: 'https://sofam-api.herokuapp.com/graphql'
     // uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
   })
 
@@ -71,6 +72,7 @@ const App: Component<{}> = () => {
     const token = await loadString("@authToken")
     return {
       headers: {
+        'x-hasura-admin-secret': 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F',
         ...headers,
         authorization: token ? `Bearer ${token}` : "",
       }
@@ -81,14 +83,14 @@ const App: Component<{}> = () => {
     const token = await loadString("@authToken")
     accessTokenVar(!!token)
   }
-  const checkAuth = async () => {
-    cache.writeQuery({
-      query: gql`{isLoggedIn @client}`,
-      data: {
-        isLoggedIn: loggedIn,
-      },
-    })
-  }
+  // const checkAuth = async () => {
+  //   cache.writeQuery({
+  //     query: gql`{isLoggedIn @client}`,
+  //     data: {
+  //       isLoggedIn: loggedIn,
+  //     },
+  //   })
+  // }
 
   // Kick off initial async loading actions, like loading fonts and RootStore
   useEffect(() => {
@@ -96,7 +98,7 @@ const App: Component<{}> = () => {
     ; (async () => {
       if (isMounted) {
         await setToken()
-        await checkAuth()
+        // await checkAuth()
         await initFonts()
         setupRootStore().then(setRootStore)
       }
@@ -112,7 +114,7 @@ const App: Component<{}> = () => {
 
   const errorLink = onError(({ graphQLErrors, networkError }) => {
     console.log("errorLink -> graphQLErrors", graphQLErrors)
-    console.log("errorLink -> networkError", networkError)
+    console.log(JSON.stringify(networkError, undefined, 2))
   })
 
   const client = new ApolloClient({

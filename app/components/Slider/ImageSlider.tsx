@@ -52,7 +52,6 @@ export class ImageSlider extends Component {
               <Text>{index}</Text>
             </View> */}
             <ProgressiveImage
-              thumbnailSource={{ uri: `https://images.pexels.com/photos/593158/pexels-photo-593158.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260&buster=${Math.random()}` }}
               source={{ uri: item.url }}
               style={IMAGE_OVERLAY}
             />

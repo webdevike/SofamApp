@@ -10,66 +10,100 @@ import {
   RefreshControl,
   TouchableOpacity,
   TextStyle,
+  StyleSheet,
 } from "react-native"
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
 import { useNavigation } from "@react-navigation/native"
 import { ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar'
 import { useGetUsersQuery } from "../../generated/graphql"
+import { gql, useQuery } from "@apollo/client"
 
-const ROOT: ViewStyle = {
-  flex: 1,
-}
-
-const WRAPPER: ViewStyle = {
-  flex: 1,
-  marginHorizontal: spacing[1]
-}
-
-const VIDEO: ViewStyle = {
-  height: 225,
-  flex: 1,
-  borderRadius: 20,
-}
-
-const IMAGE: ImageStyle = {
-  height: 225,
-  flex: 1,
-  borderRadius: 20,
-  resizeMode: 'cover'
-}
-
-const IMAGE_CONTAINER: ViewStyle = {
-  flex: 1,
-  marginLeft: spacing[2],
-  marginRight: spacing[2],
-  marginBottom: spacing[4]
-}
-
-const OVERLAY: ViewStyle = {
-  height: '100%',
-  position: "absolute",
-  bottom: 0,
-  right: 0,
-  left: 0,
-  backgroundColor: 'rgba(0, 0, 0, .25)',
-  borderRadius: 20,
-  justifyContent: 'flex-end'
-}
-
-const OVERLAY_TEXT: TextStyle = {
-  color: color.palette.white,
-  fontFamily: typography.primary,
-  fontWeight: '700',
-  fontSize: 18,
-  margin: spacing[4],
-}
+const styles = StyleSheet.create({
+  IMAGE: {
+    borderRadius: 20,
+    flex: 1,
+    height: 225,
+    resizeMode: 'cover',
+  },
+  newIndicator: {
+    position: 'absolute',
+    backgroundColor: color.palette.darkGreen,
+    padding: spacing[3],
+    borderRadius: 5,
+    right: 0,
+    top: 0,
+  },
+  newIndicatorText: {
+    color: color.palette.white,
+  },
+  IMAGE_CONTAINER: {
+    flex: 1,
+    marginBottom: spacing[4],
+    marginLeft: spacing[2],
+    marginRight: spacing[2]
+  },
+  OVERLAY: {
+    backgroundColor: 'rgba(0, 0, 0, .25)',
+    borderRadius: 20,
+    bottom: 0,
+    height: '100%',
+    justifyContent: 'flex-end',
+    left: 0,
+    position: "absolute",
+    right: 0
+  },
+  OVERLAY_TEXT: {
+    color: color.palette.white,
+    fontFamily: typography.primary,
+    fontSize: 18,
+    fontWeight: '700',
+    margin: spacing[4],
+  },
+  ROOT: {
+    flex: 1,
+  },
+  VIDEO: {
+    borderRadius: 20,
+    flex: 1,
+    height: 225,
+  },
+  WRAPPER: {
+    flex: 1,
+    marginHorizontal: spacing[1]
+  },
+  profilePicture: {
+    borderRadius: 20,
+    flex: 1,
+    height: 225,
+    width: 100,
+    backgroundColor: 'red'
+  },
+  profilePictureContainer: {
+    flex: 1,
+  }
+})
+// hasura operation
+// const USERS = gql`
+// {
+//     User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
+//       name
+//       password
+//       profilePicture
+//       Stories(order_by: {createdAt: desc}) {
+//         id
+//         url
+//         createdAt
+//       }
+//     }
+//   }
+// `
 
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const { loading, data: userAndStories, refetch } = useGetUsersQuery()
+  const { loading, data: userStories, refetch } = useGetUsersQuery()
   const [refreshing, setRefreshing] = useState(false)
 
   const onRefresh = React.useCallback(async () => {
@@ -80,9 +114,10 @@ export const HomeScreen: Component = observer(function HomeScreen() {
     setRefreshing(false)
   }, [])
 
-  const renderUsers = ({ item }) => {
+
+  const renderStories = ({ item }) => {
     const uri = item.stories[0]?.url
-    const renderFirstStory = () => {
+    const storyPreview = () => {
       if (uri?.includes('.mov')) {
         return (
           <Video
@@ -93,34 +128,34 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             resizeMode="cover"
             shouldPlay
             isLooping
-            style={VIDEO}
+            style={styles.VIDEO}
           />
         )
       } else if (uri?.includes('.jpg' || '.jpeg')) {
         return (
-          <ProgressiveImage
-            thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
-            source={{ uri }}
-            style={IMAGE}
-          />
+          <>
+            <ProgressiveImage
+              source={{ uri }}
+              style={styles.IMAGE}
+            />
+          </>
         )
       }
     }
     return (
-      <View style={IMAGE_CONTAINER}>
+      <View style={styles.IMAGE_CONTAINER}>
         <TouchableOpacity
           disabled={!uri}
           onPress={() => uri ? navigation.navigate('story', { ...item }) : null}>
-          {renderFirstStory() ? renderFirstStory() : <ProgressiveImage
-            thumbnailSource={{ uri: `https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1915&q=80` }}
-            source={{ uri: item?.profilePicture }}
-            style={IMAGE}
+          {storyPreview() ? storyPreview() : <ProgressiveImage
+            source={{ uri: item?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif'  }}
+            style={styles.IMAGE}
           />}
-          <View style={OVERLAY}>
-            <Text style={OVERLAY_TEXT}>{item.name}</Text>
+          <View style={styles.OVERLAY}>
+            {storyPreview() && <View style={styles.newIndicator}><Text style={styles.newIndicatorText}>New!</Text></View>}
+            <Text style={styles.OVERLAY_TEXT}>{item.name}</Text>
           </View>
         </TouchableOpacity>
-        <StatusBar style="auto" />
       </View>
     )
   }
@@ -169,24 +204,27 @@ export const HomeScreen: Component = observer(function HomeScreen() {
   ]
 
   return (
-    <SafeAreaView style={ROOT}>
+    <SafeAreaView style={styles.ROOT}>
       {
         loading
           ? <SkeletonContent
             isLoading={true}
             layout={firstLayout}
           />
-          : <View style={WRAPPER}>
-            <FlatList
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-              data={userAndStories?.users}
-              renderItem={renderUsers}
-              keyExtractor={item => item.id}
-              showsHorizontalScrollIndicator={false}
-              numColumns={2}
-              />
-          </View> 
+          : <>
+            <View style={styles.WRAPPER}>
+              {userStories && <FlatList
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                data={userStories?.users}
+                renderItem={renderStories}
+                keyExtractor={item => item.id}
+                showsVerticalScrollIndicator={false}
+                numColumns={2}
+              />}
+            </View>
+          </>
       }
+      <StatusBar style="dark" />
     </SafeAreaView>
   )
 })

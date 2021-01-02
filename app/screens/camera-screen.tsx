@@ -69,7 +69,7 @@ export const CameraScreen: Component = observer(function CameraScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.1,
+        quality: .1,
         videoExportPreset: 2
       })
 

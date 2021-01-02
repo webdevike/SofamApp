@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
     flex: 1,
+
   },
   imageContainer: {
     backgroundColor: color.palette.lightGreen,
@@ -72,16 +73,22 @@ const styles = StyleSheet.create({
 
 export const CreateScreen: Component = observer(function CreateScreen({ route }) {
   const photo = route.params
-  const [createStory, { error, loading }] = useCreateStoryMutation()
+  const filename = photo.uri.split('/').pop()
   const navigation = useNavigation()
 
+  const file = new ReactNativeFile({
+    uri: photo.uri,
+    name: filename,
+    type: "image/jpeg"
+  })
+
+  const [createStory, { error, loading }] = useCreateStoryMutation({
+    onCompleted: async () => {
+      navigation.navigate('home')
+    },
+  })
+
   const handleCreateStory = async () => {
-    const filename = photo.uri.split('/').pop()
-    const file = new ReactNativeFile({
-      uri: photo.uri,
-      name: filename,
-      type: "image/jpeg"
-    })
     const { data } = await createStory({
       variables: {
         url: file.uri,
@@ -106,13 +113,13 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
         proxy.writeQuery({
           query: USERS,
           data: {
+            ...createStory,
             users: [...data.users, createStory]
           }
         })
       }
     })
     await uploadImage(file, data.createStory.signedRequest)
-    if (!loading && !error) navigation.navigate('home')
   }
 
   const renderVideoOrImage = () => {

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Animated, StyleSheet, Text, View, ViewStyle } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { color, spacing } from "../../theme"
 
 export interface ErrorPopupProps {
@@ -23,24 +23,15 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     position: 'absolute',
     right: 0,
-    top: 50
+    top: 50,
+    zIndex: 10000
   }
 })
 
 export function ErrorPopup(props: ErrorPopupProps) {
   const [isShowing, toggleShowing] = React.useState(true)
-  // const slideIn = React.useRef(new Animated.Value(50)).current
-
-  // const slide = () => {
-  //   Animated.timing(slideIn, {
-  //     toValue: 0,
-  //     duration: 5000,
-  //     useNativeDriver: true
-  //   }).start()
-  // }
   React.useEffect(() => {
     setTimeout(() => {
-      // slide()
       toggleShowing(false)
     }, 5000)
   }, [])
