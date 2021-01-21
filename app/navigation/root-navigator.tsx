@@ -7,7 +7,6 @@ import { useReactiveVar } from "@apollo/client"
 import { AddMemoryScreen, AddStoryScreen, CameraScreen, CreateScreen, LoginScreen, StoryScreen } from "../screens"
 import { accessTokenVar } from "../cache"
 import { color } from "../theme"
-import { ErrorFallback } from "../components"
 
 export type RootParamList = {
   primaryStack: undefined
@@ -77,13 +76,6 @@ const RootStack = () => {
       <Stack.Screen
         name="login"
         component={LoginScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="error"
-        component={ErrorFallback}
         options={{
           headerShown: false,
         }}

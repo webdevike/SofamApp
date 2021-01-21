@@ -1,4 +1,3 @@
-require("../app/components/ErrorFallback/ErrorFallback.story")
 require("../app/components/ErrorPopup/ErrorPopup.story")
 require("../app/components/StoryCard/StoryCard.story")
 require("../app/components/ProgressiveImage/ProgressiveImage.story")
