@@ -1,6 +1,6 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Alert, Image, StyleSheet, TouchableOpacity, View } from "react-native"
 import { Text, ErrorPopup } from "../components"
 import { color, spacing } from "../theme"
 import { Entypo, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -11,6 +11,7 @@ import { uploadImage } from "../utils/uploadImage"
 import { CREATE_STORY, USERS } from "../graphql"
 import { Video } from "expo-av"
 import { useCreateStoryMutation } from "../generated/graphql"
+import * as ImageManipulator from 'expo-image-manipulator'
 
 const styles = StyleSheet.create({
   buttonContainer: {
@@ -76,12 +77,6 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
   const filename = photo.uri.split('/').pop()
   const navigation = useNavigation()
 
-  const file = new ReactNativeFile({
-    uri: photo.uri,
-    name: filename,
-    type: "image/jpeg"
-  })
-
   const [createStory, { error, loading }] = useCreateStoryMutation({
     onCompleted: async () => {
       navigation.navigate('home')
@@ -89,6 +84,17 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
   })
 
   const handleCreateStory = async () => {
+    const resizedPhoto = await ImageManipulator.manipulateAsync(
+      photo.uri,
+      [{ resize: { width: 300 } }],
+    )
+
+    const file = new ReactNativeFile({
+      uri: resizedPhoto.uri,
+      name: filename,
+      type: "image/jpeg"
+    })
+
     const { data } = await createStory({
       variables: {
         url: file.uri,
@@ -119,6 +125,7 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
         })
       }
     })
+
     await uploadImage(file, data.createStory.signedRequest)
   }
 

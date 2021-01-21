@@ -50,6 +50,7 @@ export type User = {
   id?: Maybe<Scalars['ID']>;
   name?: Maybe<Scalars['String']>;
   profilePicture?: Maybe<Scalars['String']>;
+  notificationToken?: Maybe<Scalars['String']>;
   stories?: Maybe<Array<Maybe<Story>>>;
   memories?: Maybe<Array<Maybe<Memory>>>;
 };
@@ -66,6 +67,7 @@ export type Mutation = {
   updateStory?: Maybe<Story>;
   deleteStory?: Maybe<Scalars['String']>;
   uploadFile?: Maybe<File>;
+  updateUser?: Maybe<User>;
 };
 
 
@@ -121,12 +123,21 @@ export type MutationUploadFileArgs = {
 };
 
 
+export type MutationUpdateUserArgs = {
+  id?: Maybe<Scalars['ID']>;
+  profilePicture?: Maybe<Scalars['Upload']>;
+  name?: Maybe<Scalars['String']>;
+  notificationToken?: Maybe<Scalars['String']>;
+};
+
+
 export type RegisterInput = {
   email: Scalars['String'];
   password: Scalars['String'];
   name: Scalars['String'];
   secretCode: Scalars['String'];
   profilePicture?: Maybe<Scalars['Upload']>;
+  notificationToken?: Maybe<Scalars['String']>;
 };
 
 export type Register = {
@@ -198,6 +209,7 @@ export type RegisterMutationVariables = Exact<{
   name: Scalars['String'];
   secretCode: Scalars['String'];
   profilePicture?: Maybe<Scalars['Upload']>;
+  notificationToken?: Maybe<Scalars['String']>;
 }>;
 
 
@@ -210,6 +222,33 @@ export type RegisterMutation = (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'profilePicture'>
     ) }
+  )> }
+);
+
+export type UpdateUserMutationVariables = Exact<{
+  id?: Maybe<Scalars['ID']>;
+  profilePicture: Scalars['Upload'];
+  name?: Maybe<Scalars['String']>;
+  notificationToken?: Maybe<Scalars['String']>;
+}>;
+
+
+export type UpdateUserMutation = (
+  { __typename?: 'Mutation' }
+  & { updateUser?: Maybe<(
+    { __typename?: 'User' }
+    & Pick<User, 'profilePicture'>
+  )> }
+);
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = (
+  { __typename?: 'Query' }
+  & { me?: Maybe<(
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name' | 'profilePicture' | 'notificationToken'>
   )> }
 );
 
@@ -361,8 +400,8 @@ export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const RegisterDocument = gql`
-    mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload) {
-  register(data: {email: $email, password: $password, name: $name, secretCode: $secretCode, profilePicture: $profilePicture}) {
+    mutation register($email: String!, $password: String!, $name: String!, $secretCode: String!, $profilePicture: Upload, $notificationToken: String) {
+  register(data: {email: $email, password: $password, name: $name, secretCode: $secretCode, profilePicture: $profilePicture, notificationToken: $notificationToken}) {
     accessToken
     signedRequest
     user {
@@ -393,6 +432,7 @@ export type RegisterMutationFn = Apollo.MutationFunction<RegisterMutation, Regis
  *      name: // value for 'name'
  *      secretCode: // value for 'secretCode'
  *      profilePicture: // value for 'profilePicture'
+ *      notificationToken: // value for 'notificationToken'
  *   },
  * });
  */
@@ -402,6 +442,76 @@ export function useRegisterMutation(baseOptions?: Apollo.MutationHookOptions<Reg
 export type RegisterMutationHookResult = ReturnType<typeof useRegisterMutation>;
 export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
 export type RegisterMutationOptions = Apollo.BaseMutationOptions<RegisterMutation, RegisterMutationVariables>;
+export const UpdateUserDocument = gql`
+    mutation updateUser($id: ID, $profilePicture: Upload!, $name: String, $notificationToken: String) {
+  updateUser(id: $id, profilePicture: $profilePicture, name: $name, notificationToken: $notificationToken) {
+    profilePicture
+  }
+}
+    `;
+export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
+
+/**
+ * __useUpdateUserMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserMutation, { data, loading, error }] = useUpdateUserMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      profilePicture: // value for 'profilePicture'
+ *      name: // value for 'name'
+ *      notificationToken: // value for 'notificationToken'
+ *   },
+ * });
+ */
+export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserMutation, UpdateUserMutationVariables>) {
+        return Apollo.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument, baseOptions);
+      }
+export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
+export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
+export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const MeDocument = gql`
+    query me {
+  me {
+    id
+    name
+    profilePicture
+    notificationToken
+  }
+}
+    `;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, baseOptions);
+      }
+export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, baseOptions);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const AllMemoriesDocument = gql`
     query allMemories {
   memories {

@@ -11,6 +11,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as Permissions from 'expo-permissions';
 import { currentUser } from "../utils/currentUser"
+import { gql, useQuery } from "@apollo/client"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -95,6 +96,15 @@ interface Message {
   profilePicture: string
 }
 
+const NOTIFICATION_TOKENS = gql`
+query {
+ users {
+   id
+  notificationToken
+ }
+}
+`
+
 export const ChatScreen: Component = observer(function ChatScreen() {
   const messagesRef = firestore.collection('messages')
   const query = messagesRef.orderBy('createdAt', 'desc').limit(25)
@@ -105,8 +115,31 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const dummy = useRef();
-
   const user = currentUser()
+  
+  const {loading, data} = useQuery(NOTIFICATION_TOKENS)
+  const filteredResults = data?.users.filter(x => !!x.notificationToken && x.notificationToken !== user?.me?.notificationToken)
+
+  async function sendPushNotification() {
+    const notifications = filteredResults.map((item) => {
+      return {
+        to: item.notificationToken,
+        body: 'hello',
+        badge: 1,
+      }
+    })
+  
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(notifications),
+    });
+  }
+
   const userId = user?.me.id
 
   useEffect(() => {
@@ -127,7 +160,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   }, []);
 
   const sendMessage = async (e) => {
-    await schedulePushNotification()
+    await sendPushNotification(expoPushToken)
     e.preventDefault()
 
     await messagesRef.add({
@@ -143,9 +176,8 @@ export const ChatScreen: Component = observer(function ChatScreen() {
     setFormValue('')
   }
 
-  
   return (
-    <SafeAreaView style={ROOT}>
+    <KeyboardAvoidingView style={ROOT}>
       <ScrollView ref={ref => {scrollView = ref}} onContentSizeChange={() => scrollView.scrollToEnd({animated: true})}>
         <View style={MESSAGES_CONTAINER}>
           {messages?.map(msg =>
@@ -166,25 +198,17 @@ export const ChatScreen: Component = observer(function ChatScreen() {
           value={formValue}
           placeholder="Message"
           autoCapitalize="none"
-          onSubmitEditing={sendMessage}
+          onSubmitEditing={(e) => sendMessage(e)}
           returnKeyType="send"
         />
       </KeyboardAvoidingView>
       <StatusBar style="auto" />
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   )
 })
 
-async function schedulePushNotification() {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "You've got mail! 📬",
-      body: 'Here is the notification body',
-      data: { data: 'goes here' },
-    },
-    trigger: { seconds: 1 },
-  });
-}
+
+
 
 async function registerForPushNotificationsAsync() {
   let token;

@@ -4,6 +4,7 @@ mutation register(
     $name: String!
     $secretCode: String!
     $profilePicture: Upload
+    $notificationToken: String
   ) {
     register(
       data: {
@@ -12,6 +13,7 @@ mutation register(
         name: $name
         secretCode: $secretCode
         profilePicture: $profilePicture
+        notificationToken: $notificationToken
       }
     ) {
       accessToken

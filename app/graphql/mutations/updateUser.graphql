@@ -1,0 +1,10 @@
+mutation updateUser(
+    $id: ID
+    $profilePicture: Upload!
+    $name: String 
+    $notificationToken: String
+  ) {
+    updateUser(id: $id, profilePicture: $profilePicture, name: $name, notificationToken: $notificationToken) {
+      profilePicture
+    }
+  }

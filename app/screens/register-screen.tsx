@@ -123,31 +123,6 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const navigation = useNavigation()
 
 
-  const pickImage = async (screen: string) => {
-
-    (async () => {
-      if (Platform.OS !== 'web') {
-        const { status } = await Camera.requestPermissionsAsync()
-        if (status !== 'granted') {
-          Alert.alert('Sorry, we need camera roll permissions to make this work!')
-        }
-        setHasPermission(status === 'granted')
-      }
-    })()
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.2,
-      videoExportPreset: 2
-    })
-
-    if (!result.cancelled) {
-      setPickerResult(result)
-    }
-  }
-
   const handleRegister = async () => {
 
     const filename = pickerResult?.uri.split('/').pop()
@@ -158,6 +133,9 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
       type: 'image/jpeg'
     })
 
+    const notificationToken = await loadString('@notificationToken')
+    console.log("🚀 ~ file: register-screen.tsx ~ line 137 ~ handleRegister ~ notificationToken", notificationToken)
+
     const { data }: any = await register({
       variables: {
         email: email,
@@ -165,6 +143,7 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
         name,
         secretCode: 'Wehavethecoolestfamilyontheplanet!!',
         // profilePicture: file
+        notificationToken
       }
     })
     
