@@ -1,7 +1,7 @@
 import "./i18n"
 import "./utils/ignore-warnings"
 import React, { useState, useEffect, useRef, FunctionComponent as Component } from "react"
-import { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef, useNavigation } from "@react-navigation/native"
 import { SafeAreaProvider, initialWindowSafeAreaInsets } from "react-native-safe-area-context"
 import { initFonts } from "./theme/fonts"
 import * as storage from "./utils/storage"
@@ -21,9 +21,11 @@ import { accessTokenVar, cache } from './cache'
 import * as firebase from 'firebase'
 import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
-import { loadString } from "./utils/storage"
+import { loadString, saveString } from "./utils/storage"
 import { Platform } from "react-native"
-import * as Updates from 'expo-updates'
+import { currentUser } from "./utils/currentUser"
+import { ErrorBoundary } from "react-error-boundary"
+import { ErrorFallback } from "./components"
 
 enableScreens()
 
@@ -49,6 +51,7 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 /**
  * This is the root component of our app.
  */
+
 const App: Component<{}> = () => {
   const navigationRef = useRef<NavigationContainerRef>()
   const [rootStore, setRootStore] = useState<RootStore | undefined>(undefined)
@@ -64,8 +67,8 @@ const App: Component<{}> = () => {
   const uploadLink = createUploadLink({
     // uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
     // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
-    uri: 'https://sofam-api.herokuapp.com/graphql'
-    // uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
+    // uri: 'https://sofam-api.herokuapp.com/graphql'
+    uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
   })
 
   const authLink = setContext(async (_, { headers }) => {
@@ -83,27 +86,14 @@ const App: Component<{}> = () => {
     const token = await loadString("@authToken")
     accessTokenVar(!!token)
   }
-  // const checkAuth = async () => {
-  //   cache.writeQuery({
-  //     query: gql`{isLoggedIn @client}`,
-  //     data: {
-  //       isLoggedIn: loggedIn,
-  //     },
-  //   })
-  // }
 
-  // Kick off initial async loading actions, like loading fonts and RootStore
   useEffect(() => {
-    let isMounted = true
     ; (async () => {
-      if (isMounted) {
-        await setToken()
-        // await checkAuth()
-        await initFonts()
-        setupRootStore().then(setRootStore)
-      }
+      await setToken()
+      // await checkAuth()
+      await initFonts()
+      setupRootStore().then(setRootStore)
     })()
-    return () => { isMounted = false }
   }, [])
 
   // Before we show the app, we have to wait for our state to be ready.
@@ -113,8 +103,8 @@ const App: Component<{}> = () => {
   if (!rootStore) return null
 
   const errorLink = onError(({ graphQLErrors, networkError }) => {
-    console.log("errorLink -> graphQLErrors", graphQLErrors)
-    console.log(JSON.stringify(networkError, undefined, 2))
+    // console.log("🚀 ~ file: app.tsx ~ line 104 ~ errorLink ~ graphQLErrors", graphQLErrors)
+    // console.log(JSON.stringify(networkError, undefined, 2))
   })
 
   const client = new ApolloClient({
@@ -124,17 +114,20 @@ const App: Component<{}> = () => {
 
   // otherwise, we're ready to render the app
   return (
-    <ApolloProvider client={client}>
-      <RootStoreProvider value={rootStore}>
-        <SafeAreaProvider initialSafeAreaInsets={initialWindowSafeAreaInsets}>
-          <RootNavigator
-            ref={navigationRef}
-            initialState={initialNavigationState}
-            onStateChange={onNavigationStateChange}
-          />
-        </SafeAreaProvider>
-      </RootStoreProvider>
-    </ApolloProvider>
+    <ErrorFallback error={'a bad error'}>
+      <ApolloProvider client={client}>
+
+        <RootStoreProvider value={rootStore}>
+          <SafeAreaProvider initialSafeAreaInsets={initialWindowSafeAreaInsets}>
+            <RootNavigator
+              ref={navigationRef}
+              initialState={initialNavigationState}
+              onStateChange={onNavigationStateChange}
+            />
+          </SafeAreaProvider>
+        </RootStoreProvider>
+      </ApolloProvider>
+    </ErrorFallback >
   )
 }
 

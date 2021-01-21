@@ -4,7 +4,7 @@
  *
  * You'll likely spend most of your time in this file.
  */
-import React from "react"
+import React, { useEffect } from "react"
 import { createStackNavigator } from "@react-navigation/stack"
 import { HomeScreen, DemoScreen, ProfileScreen, MemoryScreen, ChatScreen, CalendarScreen, AddMemoryScreen, CameraScreen } from "../screens"
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -17,6 +17,7 @@ import { color } from '../theme/color'
 import { Header } from "../components"
 import { spacing } from "../theme"
 import { useNavigation, useRoute } from "@react-navigation/native"
+import { currentUser } from "../utils/currentUser"
 
 export type PrimaryParamList = {
   home: undefined,
@@ -48,10 +49,17 @@ export function PrimaryNavigator(props) {
   const route = useRoute()
   const navigation = useNavigation()
   const currentScreen = route.state?.index
+  // const user = currentUser()
 
   const goToPage = () => {
     navigation.navigate('profile')
   }
+
+  // function doesUserDataExist() {
+  //   if (currentScreen !== 2) {
+  //     if (!user?.me?.notificationToken) navigation.navigate('profile')
+  //   }
+  // }
 
   const getCurrentScreen = () => {
     if (currentScreen === 0) return 'Stories'
@@ -61,6 +69,10 @@ export function PrimaryNavigator(props) {
     if (currentScreen === 5) return 'Calendar'
     else return 'Stories'
   }
+
+  // useEffect(() => {
+  //   doesUserDataExist()
+  // }, [user])
 
   return (
     <>

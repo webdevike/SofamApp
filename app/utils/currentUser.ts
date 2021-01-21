@@ -1,17 +1,8 @@
+import { MeDocument } from './../generated/graphql'
 import { gql, useQuery } from "@apollo/client"
 
-const ME = gql`
-   {
-    me {
-      id
-      name
-      profilePicture
-    }
-  }
-`
-
 export function currentUser() {
-  const { loading, data } = useQuery(ME)
+  const { loading, data } = useQuery(MeDocument)
 
   if (!loading) return data
 }

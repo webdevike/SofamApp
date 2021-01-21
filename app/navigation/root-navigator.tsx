@@ -7,6 +7,7 @@ import { useReactiveVar } from "@apollo/client"
 import { AddMemoryScreen, AddStoryScreen, CameraScreen, CreateScreen, LoginScreen, StoryScreen } from "../screens"
 import { accessTokenVar } from "../cache"
 import { color } from "../theme"
+import { ErrorFallback } from "../components"
 
 export type RootParamList = {
   primaryStack: undefined
@@ -49,18 +50,6 @@ const RootStack = () => {
           headerTintColor: color.palette.white
         }}
       />
-      {/* <Stack.Screen
-        name="add-story"
-        component={AddStoryScreen}
-        options={{
-          headerStyle: {
-            backgroundColor: color.palette.black,
-          },
-          headerTitle: "",
-          headerBackTitleVisible: false,
-          headerTintColor: color.palette.white
-        }}
-      /> */}
       <Stack.Screen
         name="camera-screen"
         component={CameraScreen}
@@ -92,6 +81,13 @@ const RootStack = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="error"
+        component={ErrorFallback}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   )
 }
@@ -117,7 +113,6 @@ const AuthStack = () => {
 
 export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<React.ComponentProps<typeof NavigationContainer>>>((props, ref) => {
   const loggedIn = useReactiveVar(accessTokenVar)
-  console.log("🚀 ~ file: root-navigator.tsx ~ line 120 ~ loggedIn", loggedIn)
   return (
     <>
       <NavigationContainer {...props} ref={ref}>
