@@ -21,11 +21,8 @@ import { accessTokenVar, cache } from './cache'
 import * as firebase from 'firebase'
 import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
-import { loadString, saveString } from "./utils/storage"
+import { clear, loadString, saveString } from "./utils/storage"
 import { Platform } from "react-native"
-import { currentUser } from "./utils/currentUser"
-import { ErrorBoundary } from "react-error-boundary"
-import { ErrorFallback } from "./components"
 
 enableScreens()
 
@@ -102,9 +99,17 @@ const App: Component<{}> = () => {
   // with your own loading component if you wish.
   if (!rootStore) return null
 
-  const errorLink = onError(({ graphQLErrors, networkError }) => {
-    // console.log("🚀 ~ file: app.tsx ~ line 104 ~ errorLink ~ graphQLErrors", graphQLErrors)
-    // console.log(JSON.stringify(networkError, undefined, 2))
+  const errorLink = onError(async ({ graphQLErrors, networkError }) => {
+    console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ networkError", networkError)
+    console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ graphQLErrors", graphQLErrors)
+    if (networkError) {
+      cache.evict({ fieldName: 'me' })
+      cache.gc()
+      await clear()
+      accessTokenVar(false)
+    }
+    // if (graphQLErrors) setGraphqlError(graphQLErrors)
+    // if (networkError) setNetworkError(networkError)
   })
 
   const client = new ApolloClient({
@@ -114,20 +119,17 @@ const App: Component<{}> = () => {
 
   // otherwise, we're ready to render the app
   return (
-    <ErrorFallback error={'a bad error'}>
-      <ApolloProvider client={client}>
-
-        <RootStoreProvider value={rootStore}>
-          <SafeAreaProvider initialSafeAreaInsets={initialWindowSafeAreaInsets}>
-            <RootNavigator
-              ref={navigationRef}
-              initialState={initialNavigationState}
-              onStateChange={onNavigationStateChange}
-            />
-          </SafeAreaProvider>
-        </RootStoreProvider>
-      </ApolloProvider>
-    </ErrorFallback >
+    <ApolloProvider client={client}>
+      <RootStoreProvider value={rootStore}>
+        <SafeAreaProvider initialSafeAreaInsets={initialWindowSafeAreaInsets}>
+          <RootNavigator
+            ref={navigationRef}
+            initialState={initialNavigationState}
+            onStateChange={onNavigationStateChange}
+          />
+        </SafeAreaProvider>
+      </RootStoreProvider>
+    </ApolloProvider>
   )
 }
 
