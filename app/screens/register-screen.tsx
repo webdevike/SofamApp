@@ -1,4 +1,4 @@
-import React, { FunctionComponent as Component, useEffect, useState } from "react"
+import React, { FunctionComponent as Component, useContext, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { ViewStyle, View, TextInput, ImageStyle, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native"
 import { Button, ErrorPopup, Text } from "../components"
@@ -8,12 +8,14 @@ import { saveString, loadString, save, load } from "../utils/storage"
 import { StatusBar } from 'expo-status-bar';
 import { accessTokenVar, cache } from '../cache'
 import * as ImagePicker from 'expo-image-picker'
-import { ReactNativeFile } from 'apollo-upload-client'
+// import { ReactNativeFile } from 'apollo-upload-client'
 import { uploadImage } from "../utils/uploadImage"
 import { Camera } from 'expo-camera';
 import { IS_LOGGED_IN, USERS } from "../graphql"
 import { GetUsersDocument, GetUsersQuery, useGetUsersQuery, useRegisterMutation } from "../generated/graphql"
 import { useNavigation } from "@react-navigation/native"
+import * as firebase from 'firebase'
+import { AuthContext } from "../context/AuthProvider"
 
 // Styles
 const TEXT: TextStyle = {
@@ -105,14 +107,14 @@ interface FileDataObject {
 }
 
 export const RegisterScreen: Component = observer(function RegisterScreen(props) {
-  const [register, { loading, error }] = useRegisterMutation({
-    onCompleted: () => {
-      accessTokenVar(true)
-    },
-    refetchQueries: [
-      { query: GetUsersDocument }
-    ]
-  })
+  // const [register, { true, error }] = useRegisterMutation({
+  //   onCompleted: () => {
+  //     accessTokenVar(true)
+  //   },
+  //   refetchQueries: [
+  //     { query: GetUsersDocument }
+  //   ]
+  // })
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
@@ -122,40 +124,36 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const loggedIn = useReactiveVar(accessTokenVar)
   const navigation = useNavigation()
 
+  const { register } = useContext(AuthContext)
+
 
   const handleRegister = async () => {
 
-    const filename = pickerResult?.uri.split('/').pop()
 
-    const file = new ReactNativeFile({
-      uri: pickerResult?.uri,
-      name: filename,
-      type: 'image/jpeg'
-    })
+    // const notificationToken = await loadString('@notificationToken')
 
-    const notificationToken = await loadString('@notificationToken')
-    console.log("🚀 ~ file: register-screen.tsx ~ line 137 ~ handleRegister ~ notificationToken", notificationToken)
+    register('ikey2244@gmail.com', 'Qazplm100!')
 
-    const { data }: any = await register({
-      variables: {
-        email: email,
-        password: password,
-        name,
-        secretCode: 'Wehavethecoolestfamilyontheplanet!!',
-        // profilePicture: file
-        notificationToken
-      }
-    })
+    // const { data }: any = await register({
+    //   variables: {
+    //     email: email,
+    //     password: password,
+    //     name,
+    //     secretCode: 'Wehavethecoolestfamilyontheplanet!!',
+    //     // profilePicture: file
+    //     notificationToken
+    //   }
+    // })
+
     
-    // console.log("🚀 ~ file: register-screen.tsx ~ line 162 ~ handleRegister ~ data", data)
-    if (!error) {
-      // uploadImage(file, data.register.signedRequest)
-      await saveString("@authToken", data.register.accessToken)
-    }
+    // if (!error) {
+    //   // uploadImage(file, data.register.signedRequest)
+    //   await saveString("@authToken", data.register.accessToken)
+    // }
   }
   return (
     <View style={FULL}>
-      {error && <ErrorPopup error={error} />}
+      {/* {error && <ErrorPopup error={error} />} */}
       <KeyboardAvoidingView
         style={CONTAINER}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -212,10 +210,10 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
           <Button
             style={LOGIN_BUTTON}
             textStyle={LOGIN_BUTTON_TEXT}
-            text={loading ? '' : 'Signup'}
+            text={false ? '' : 'Signup'}
             onPress={handleRegister}
           >
-            {loading && <ActivityIndicator size="small" color="white" />}
+            {false && <ActivityIndicator size="small" color="white" />}
           </Button>
 
         <View style={BOTTOM_TEXT_CONTAINER}>

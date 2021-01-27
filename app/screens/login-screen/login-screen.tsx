@@ -1,4 +1,4 @@
-import React, { FunctionComponent as Component, useState, useEffect } from "react"
+import React, { FunctionComponent as Component, useState, useEffect, useContext } from "react"
 import { observer } from "mobx-react-lite"
 import { ViewStyle, View, TextInput, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Button, ErrorPopup, Text } from "../../components"
@@ -9,6 +9,7 @@ import { accessTokenVar, cache } from '../../cache'
 import { IS_LOGGED_IN } from '../../graphql'
 import { StatusBar } from "expo-status-bar"
 import { useLoginMutation } from "../../generated/graphql"
+import { AuthContext } from "../../context/AuthProvider"
 
 interface Props {
   navigation: any
@@ -82,19 +83,16 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
 
 
 export const LoginScreen: Component<Props> = observer(function LoginScreen(props) {
-  const [login, { loading, error }] = useLoginMutation()
+  // const [login, { loading, error }] = useLoginMutation()
+  const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const loggedIn = useReactiveVar(accessTokenVar)
+
+  const { login } = useContext(AuthContext)
   const handleLogin = async () => {
-    const { data }: any = await login({
-      variables: {
-        email: email,
-        password: password,
-      },
-    })
-    console.log(data, 'login data')
-    saveString("@authToken", data.login)
+    login('ikey2244@gmail.com', 'Qazplm100!')
+    saveString("@authToken", '123123123123')
     accessTokenVar(true)
   }
   return (
@@ -139,7 +137,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-      {error && <ErrorPopup error={error} />}
+      {/* {error && <ErrorPopup error={error} />} */}
       <StatusBar style="light" />
     </View>
   )

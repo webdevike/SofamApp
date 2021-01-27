@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { NavigationContainer, NavigationContainerRef, useNavigation } from "@react-navigation/native"
 import { createStackNavigator } from "@react-navigation/stack"
 import { PrimaryNavigator } from "./primary-navigator"
@@ -7,6 +7,9 @@ import { useReactiveVar } from "@apollo/client"
 import { AddMemoryScreen, AddStoryScreen, CameraScreen, CreateScreen, LoginScreen, StoryScreen } from "../screens"
 import { accessTokenVar } from "../cache"
 import { color } from "../theme"
+import { AuthContext } from "../context/AuthProvider"
+import { Text } from "react-native"
+import * as firebase from 'firebase'
 
 export type RootParamList = {
   primaryStack: undefined
@@ -104,11 +107,29 @@ const AuthStack = () => {
 }
 
 export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<React.ComponentProps<typeof NavigationContainer>>>((props, ref) => {
+  const { user, setUser } = useContext(AuthContext)
+  const [loading, setLoading] = useState(true)
+  const [initializing, setInitializing] = useState(true)
   const loggedIn = useReactiveVar(accessTokenVar)
+
+  function onAuthStateChanged(user) {
+    setUser(user)
+    if (initializing) setInitializing(false)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    const subscriber = firebase.auth().onAuthStateChanged(onAuthStateChanged)
+    return subscriber // unsubscribe on unmount
+  }, [])
+  if (loading) {
+    return <Text>Helllo</Text>
+  }
+
   return (
     <>
       <NavigationContainer {...props} ref={ref}>
-        {loggedIn ? <RootStack /> : <AuthStack />}
+        {user ? <RootStack /> : <AuthStack />}
       </NavigationContainer>
     </>
   )
