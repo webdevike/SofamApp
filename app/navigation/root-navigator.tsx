@@ -10,6 +10,7 @@ import { color } from "../theme"
 import { AuthContext } from "../context/AuthProvider"
 import { Text } from "react-native"
 import * as firebase from 'firebase'
+import { saveString } from "../utils/storage"
 
 export type RootParamList = {
   primaryStack: undefined
@@ -112,8 +113,9 @@ export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<Re
   const [initializing, setInitializing] = useState(true)
   const loggedIn = useReactiveVar(accessTokenVar)
 
-  function onAuthStateChanged(user) {
+  async function onAuthStateChanged(user) {
     setUser(user)
+    if (user) console.log(user.apiKey)
     if (initializing) setInitializing(false)
     setLoading(false)
   }
@@ -122,6 +124,7 @@ export const RootNavigator = React.forwardRef<NavigationContainerRef, Partial<Re
     const subscriber = firebase.auth().onAuthStateChanged(onAuthStateChanged)
     return subscriber // unsubscribe on unmount
   }, [])
+
   if (loading) {
     return <Text>Helllo</Text>
   }

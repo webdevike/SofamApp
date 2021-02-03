@@ -103,12 +103,12 @@ const App: Component<{}> = () => {
   const errorLink = onError(async ({ graphQLErrors, networkError }) => {
     console.log("🚀 ~ file: app.tsx ~ line 104 ~ errorLink ~ networkError", networkError)
     console.log("🚀 ~ file: app.tsx ~ line 104 ~ errorLink ~ graphQLErrors", graphQLErrors)
-    if (networkError) {
-      cache.evict({ fieldName: 'me' })
-      cache.gc()
-      await clear()
-      accessTokenVar(false)
-    }
+    // if (networkError) {
+    //   cache.evict({ fieldName: 'me' })
+    //   cache.gc()
+    //   await clear()
+    //   accessTokenVar(false)
+    // }
   })
 
   const client = new ApolloClient({

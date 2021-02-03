@@ -91,8 +91,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
 
   const { login } = useContext(AuthContext)
   const handleLogin = async () => {
-    login('ikey2244@gmail.com', 'Qazplm100!')
-    saveString("@authToken", '123123123123')
+    login(email, password)
     accessTokenVar(true)
   }
   return (
