@@ -20,6 +20,7 @@ import SkeletonContent from "react-native-skeleton-content"
 import { StatusBar } from 'expo-status-bar'
 import { useGetUsersQuery } from "../../generated/graphql"
 import { gql, useQuery } from "@apollo/client"
+import { GraphQLClient, request } from 'graphql-request'
 
 const styles = StyleSheet.create({
   IMAGE: {
@@ -86,26 +87,35 @@ const styles = StyleSheet.create({
   }
 })
 // hasura operation
-// const USERS = gql`
-// {
-//     User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
-//       name
-//       password
-//       profilePicture
-//       Stories(order_by: {createdAt: desc}) {
-//         id
-//         url
-//         createdAt
-//       }
-//     }
-//   }
-// `
+const query = gql`
+{
+    User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
+      name
+      passwordx`
+      profilePicture
+      Stories(order_by: {createdAt: desc}) {
+        id
+        url
+        createdAt
+      }
+    }
+  }
+`
+
+const client = new GraphQLClient('https://tops-phoenix-38.hasura.app/v1/graphql')
+client.setHeader('x-hasura-admin-secret', 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F')
 
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
   const { loading, data: userStories, refetch } = useGetUsersQuery()
+  const [userData, setUserData] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
+  
 
+  React.useEffect(() => {
+    if(!userData) client.request(query).then((data) => setUserData(data))
+  })
+  
   const onRefresh = React.useCallback(async () => {
     refetch()
     if (loading) {
@@ -116,7 +126,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
 
 
   const renderStories = ({ item }) => {
-    const uri = item.stories[0]?.url
+    const uri = item.Stories[0]?.url
     const storyPreview = () => {
       if (uri?.includes('.mov')) {
         return (
@@ -215,9 +225,9 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             <View style={styles.WRAPPER}>
               {userStories && <FlatList
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                data={userStories?.users}
+                data={userData?.User}
                 renderItem={renderStories}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item.password}
                 showsVerticalScrollIndicator={false}
                 numColumns={2}
               />}
