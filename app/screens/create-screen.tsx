@@ -100,30 +100,35 @@ export const CreateScreen: Component = observer(function CreateScreen({ route })
         url: file.uri,
         file
       },
-      optimisticResponse: {
-        __typename: 'Mutation',
-        createStory: {
-          __typename: "User",
-          id: Math.round(Math.random() * -1000000).toString(),
-          name: 'Isaac',
-          stories: [
-            {
-              id: Math.round(Math.random() * -1000000).toString(),
-              url: file.uri,
-            }
-          ]
+      refetchQueries: [
+        {
+          query: USERS
         }
-      },
-      update: (proxy, { data: { createStory } }) => {
-        const data = proxy.readQuery({ query: USERS })
-        proxy.writeQuery({
-          query: USERS,
-          data: {
-            ...createStory,
-            users: [...data.users, createStory]
-          }
-        })
-      }
+      ]
+      // optimisticResponse: {
+      //   __typename: 'Mutation',
+      //   createStory: {
+      //     __typename: "User",
+      //     id: Math.round(Math.random() * -1000000).toString(),
+      //     name: 'Isaac',
+      //     stories: [
+      //       {
+      //         id: Math.round(Math.random() * -1000000).toString(),
+      //         url: file.uri,
+      //       }
+      //     ]
+      //   }
+      // },
+      // update: (proxy, { data: { createStory } }) => {
+      //   const data = proxy.readQuery({ query: USERS })
+      //   proxy.writeQuery({
+      //     query: USERS,
+      //     data: {
+      //       ...createStory,
+      //       users: [...data.users, createStory]
+      //     }
+      //   })
+      // }
     })
 
     await uploadImage(file, data.createStory.signedRequest)
