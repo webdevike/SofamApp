@@ -134,7 +134,6 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
     })
 
     const notificationToken = await loadString('@notificationToken')
-    console.log("🚀 ~ file: register-screen.tsx ~ line 137 ~ handleRegister ~ notificationToken", notificationToken)
 
     const { data }: any = await register({
       variables: {

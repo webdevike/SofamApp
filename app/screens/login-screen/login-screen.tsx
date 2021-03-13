@@ -1,4 +1,4 @@
-import React, { FunctionComponent as Component, useState, useEffect } from "react"
+import React, { FunctionComponent as Component, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { ViewStyle, View, TextInput, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Button, ErrorPopup, Text } from "../../components"
@@ -85,7 +85,6 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
   const [login, { loading, error }] = useLoginMutation()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const loggedIn = useReactiveVar(accessTokenVar)
   const handleLogin = async () => {
     const { data }: any = await login({
       variables: {
@@ -93,7 +92,6 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
         password: password,
       },
     })
-    console.log(data, 'login data')
     saveString("@authToken", data.login)
     accessTokenVar(true)
   }

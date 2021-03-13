@@ -48,7 +48,7 @@ const HEADER_TITLE: TextStyle = {
 export function PrimaryNavigator(props) {
   const route = useRoute()
   const navigation = useNavigation()
-  const currentScreen = route.state?.index
+  const currentScreen = route.state?.index ?? 0
   // const user = currentUser()
 
   const goToPage = () => {
@@ -69,10 +69,6 @@ export function PrimaryNavigator(props) {
     if (currentScreen === 5) return 'Calendar'
     else return 'Stories'
   }
-
-  // useEffect(() => {
-  //   doesUserDataExist()
-  // }, [user])
 
   return (
     <>

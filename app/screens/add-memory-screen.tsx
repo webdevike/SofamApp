@@ -67,33 +67,39 @@ export const AddMemoryScreen: Component = function AddMemoryScreen(props) {
       name: filename,
       type: "image/jpeg"
     })
-    const { data } = await createMemory({
-      variables: {
-        file,
-        title,
-        description
-      },
-      optimisticResponse: {
-        __typename: 'Mutation',
-        createMemory: {
-          __typename: "Memory",
-          id: Math.round(Math.random() * -1000000).toString(),
-          thumbnail: file.uri,
-          title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
-        }
-      },
-      update: (proxy, { data: { createMemory } }) => {
-        const data: AllMemoriesQuery = proxy.readQuery({ query: AllMemoriesDocument })
-        proxy.writeQuery({
-          query: AllMemoriesDocument,
-          data: {
-            memories: [...data.memories, createMemory]
+    try {
+      const { data } = await createMemory({
+        variables: {
+          file,
+          title,
+          description
+        },
+        optimisticResponse: {
+          __typename: 'Mutation',
+          createMemory: {
+            __typename: "Memory",
+            id: Math.round(Math.random() * -1000000).toString(),
+            thumbnail: file.uri,
+            title: "TESTING IF OPTIMSTIC RESPONSE IS WORKING",
           }
-        })
+        },
+        update: (proxy, { data: { createMemory } }) => {
+          const data: AllMemoriesQuery = proxy.readQuery({ query: AllMemoriesDocument })
+          proxy.writeQuery({
+            query: AllMemoriesDocument,
+            data: {
+              memories: [...data.memories, createMemory]
+            }
+          })
+        }
+      })
+      if (data && !loading && !error) {
+        navigation.navigate('memory')
+        uploadImage(file, data.createMemory.signedRequest)
       }
-    })
-    navigation.navigate('memory')
-    uploadImage(file, data.createMemory.signedRequest)
+    } catch (error) {
+      console.log(error)
+    }
   }
   const renderVideoOrImage = () => {
     if (fileData?.uri.includes('.mov')) {

@@ -44,7 +44,6 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
   const user = currentUser()
 
   const logout = async () => {
-    cache.evict({ fieldName: 'me' })
     cache.gc()
     await clear()
     accessTokenVar(false)
