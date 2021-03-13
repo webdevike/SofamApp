@@ -10,6 +10,7 @@ import { ProgressiveImage } from ".."
 import { currentUser } from "../../utils/currentUser"
 import * as Updates from 'expo-updates'
 import { TouchableOpacity } from "react-native-gesture-handler"
+import { useAuthState } from "../../app"
 
 // static styles
 const ROOT: ViewStyle = {
@@ -72,8 +73,7 @@ export const Header: Component<HeaderProps> = props => {
     }
   }
 
-  const user = currentUser()
-
+  const { user } = useAuthState()
   return (
     <>
       <View style={{ ...ROOT, ...style }}>
@@ -92,7 +92,7 @@ export const Header: Component<HeaderProps> = props => {
 
             <View>
               <ProgressiveImage
-                source={{ uri: user?.me?.profilePicture || '"https://images.unsplash.com/photo-1529405643518-5cf24fddfc0b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"' }}
+                source={{ uri: user?.picture || '"https://images.unsplash.com/photo-1529405643518-5cf24fddfc0b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"' }}
                 style={PROFILE_IMAGE} />
             </View>
 

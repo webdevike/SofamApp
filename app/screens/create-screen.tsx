@@ -8,10 +8,11 @@ import { useMutation } from '@apollo/client'
 import { useNavigation } from '@react-navigation/native'
 import { ReactNativeFile } from 'apollo-upload-client'
 import { uploadImage } from "../utils/uploadImage"
-import { CREATE_STORY, USERS } from "../graphql"
+import { CREATE_STORY } from "../graphql"
 import { Video } from "expo-av"
 import { useCreateStoryMutation } from "../generated/graphql"
 import * as ImageManipulator from 'expo-image-manipulator'
+import { gql } from "graphql-request"
 
 const styles = StyleSheet.create({
   buttonContainer: {
@@ -71,6 +72,21 @@ const styles = StyleSheet.create({
     height: 250
   },
 })
+
+const USERS = gql`
+{
+    User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
+      name
+      password
+      profilePicture
+      Stories(order_by: {createdAt: desc}) {
+        id
+        url
+        createdAt
+      }
+    }
+  }
+`
 
 export const CreateScreen: Component = observer(function CreateScreen({ route }) {
   const photo = route.params

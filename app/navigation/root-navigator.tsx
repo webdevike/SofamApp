@@ -7,6 +7,7 @@ import { useReactiveVar } from "@apollo/client"
 import { AddMemoryScreen, AddStoryScreen, CameraScreen, CreateScreen, LoginScreen, StoryScreen } from "../screens"
 import { accessTokenVar } from "../cache"
 import { color } from "../theme"
+import { Text } from "../components"
 
 export type RootParamList = {
   primaryStack: undefined

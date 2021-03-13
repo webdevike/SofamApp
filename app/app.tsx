@@ -1,7 +1,7 @@
 import "./i18n"
 import "./utils/ignore-warnings"
 import React, { useState, useEffect, useRef, FunctionComponent as Component } from "react"
-import { NavigationContainerRef, useNavigation } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 import { SafeAreaProvider, initialWindowSafeAreaInsets } from "react-native-safe-area-context"
 import { initFonts } from "./theme/fonts"
 import * as storage from "./utils/storage"
@@ -21,8 +21,9 @@ import { accessTokenVar, cache } from './cache'
 import * as firebase from 'firebase'
 import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
-import { clear, loadString, saveString } from "./utils/storage"
-import { Platform } from "react-native"
+import { loadString } from "./utils/storage"
+import jwtDecode from "jwt-decode"
+import { Text } from "react-native"
 
 enableScreens()
 
@@ -37,6 +38,61 @@ const firebaseConfig = {
   measurementId: "G-1RLFNSRZRH"
 }
 
+const setToken = async () => {
+  const token = await loadString("@authToken")
+  accessTokenVar(!!token)
+  return token
+}
+
+const decodeToken = (token) => {
+  return jwtDecode(token)
+}
+
+async function getUser() {
+  const token = await loadString("@authToken")
+  return decodeToken(token)
+}
+
+const AuthContext = React.createContext(null)
+function AuthProvider({ children }) {
+  const [state, setState] = React.useState({
+    status: 'pending',
+    error: null,
+    user: null,
+  })
+  React.useEffect(() => {
+    getUser().then(
+      user => setState({ status: 'success', error: null, user }),
+      error => setState({ status: 'error', error, user: null }),
+    )
+  }, [])
+
+  return (
+    <AuthContext.Provider value={state}>
+      {state.status === 'pending' ? (
+        <Text>Loading</Text>
+      ) : (
+        children
+      )}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuthState() {
+  const state = React.useContext(AuthContext)
+  const isPending = state.status === 'pending'
+  const isError = state.status === 'error'
+  const isSuccess = state.status === 'success'
+  const isAuthenticated = state.user && isSuccess
+  return {
+    ...state,
+    isPending,
+    isError,
+    isSuccess,
+    isAuthenticated,
+  }
+}
+
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig)
 }
@@ -45,14 +101,9 @@ export const firestore = firebase.firestore()
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
-/**
- * This is the root component of our app.
- */
-
 const App: Component<{}> = () => {
   const navigationRef = useRef<NavigationContainerRef>()
   const [rootStore, setRootStore] = useState<RootStore | undefined>(undefined)
-  const loggedIn = useReactiveVar(accessTokenVar)
 
   setRootNavigation(navigationRef)
   useBackButtonHandler(navigationRef, canExit)
@@ -62,27 +113,26 @@ const App: Component<{}> = () => {
   )
 
   const uploadLink = createUploadLink({
-    // uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
+    uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
     // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
     // uri: 'https://sofam-api.herokuapp.com/graphql'
-    uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
+    // uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
   })
 
   const authLink = setContext(async (_, { headers }) => {
-    const token = await loadString("@authToken")
+    const token = await setToken()
+    const decodedToken = decodeToken(token)
+    const hasuraHeaders = decodedToken['https://hasura.io/jwt/claims']
     return {
       headers: {
-        'x-hasura-admin-secret': 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F',
-        ...headers,
+        // 'x-hasura-admin-secret': 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F',
+        ...hasuraHeaders,
+        'X-Hasura-User-ID': hasuraHeaders['x-hasura-user-id'],
+        'X-Hasura-Role': hasuraHeaders['x-hasura-default-role'],
         authorization: token ? `Bearer ${token}` : "",
       }
     }
   })
-
-  const setToken = async () => {
-    const token = await loadString("@authToken")
-    accessTokenVar(!!token)
-  }
 
   useEffect(() => {
     ; (async () => {
@@ -92,24 +142,11 @@ const App: Component<{}> = () => {
       setupRootStore().then(setRootStore)
     })()
   }, [])
-
-  // Before we show the app, we have to wait for our state to be ready.
-  // In the meantime, don't render anything. This will be the background
-  // color set in native by rootView's background color. You can replace
-  // with your own loading component if you wish.
   if (!rootStore) return null
 
-  const errorLink = onError(async ({ graphQLErrors, networkError }) => {
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
     console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ networkError", networkError)
     console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ graphQLErrors", graphQLErrors)
-    if (networkError) {
-      cache.evict({ fieldName: 'me' })
-      cache.gc()
-      await clear()
-      accessTokenVar(false)
-    }
-    // if (graphQLErrors) setGraphqlError(graphQLErrors)
-    // if (networkError) setNetworkError(networkError)
   })
 
   const client = new ApolloClient({
@@ -122,11 +159,13 @@ const App: Component<{}> = () => {
     <ApolloProvider client={client}>
       <RootStoreProvider value={rootStore}>
         <SafeAreaProvider initialSafeAreaInsets={initialWindowSafeAreaInsets}>
-          <RootNavigator
-            ref={navigationRef}
-            initialState={initialNavigationState}
-            onStateChange={onNavigationStateChange}
-          />
+          <AuthProvider>
+            <RootNavigator
+              ref={navigationRef}
+              initialState={initialNavigationState}
+              onStateChange={onNavigationStateChange}
+            />
+          </AuthProvider>
         </SafeAreaProvider>
       </RootStoreProvider>
     </ApolloProvider>

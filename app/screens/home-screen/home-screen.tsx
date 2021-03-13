@@ -91,7 +91,7 @@ const query = gql`
 {
     User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
       name
-      passwordx`
+      password
       profilePicture
       Stories(order_by: {createdAt: desc}) {
         id
@@ -101,20 +101,10 @@ const query = gql`
     }
   }
 `
-
-const client = new GraphQLClient('https://tops-phoenix-38.hasura.app/v1/graphql')
-client.setHeader('x-hasura-admin-secret', 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F')
-
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const { loading, data: userStories, refetch } = useGetUsersQuery()
-  const [userData, setUserData] = useState(null)
+  const { loading, data: userStories, refetch } = useQuery(query)
   const [refreshing, setRefreshing] = useState(false)
-  
-
-  React.useEffect(() => {
-    if(!userData) client.request(query).then((data) => setUserData(data))
-  })
   
   const onRefresh = React.useCallback(async () => {
     refetch()
@@ -225,7 +215,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             <View style={styles.WRAPPER}>
               {userStories && <FlatList
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                data={userData?.User}
+                data={userStories?.User}
                 renderItem={renderStories}
                 keyExtractor={item => item.password}
                 showsVerticalScrollIndicator={false}

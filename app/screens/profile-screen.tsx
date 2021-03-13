@@ -12,6 +12,7 @@ import { ReactNativeFile } from "apollo-upload-client"
 import { gql, useMutation, useQuery } from "@apollo/client"
 import { uploadImage } from "../utils/uploadImage"
 import { useNotifcations } from "../hooks/useNotifications"
+import { useAuthState } from "../app"
 
 const UPDATE_USER = gql`
 mutation updateUser(
@@ -41,7 +42,8 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
 
   // if (!loading) console.log("🚀 ~ file: profile-screen.tsx ~ line 38 ~ ProfileScreen ~ data", data)
   const [media, pickImage, takePicture] = useImagePicker()
-  const user = currentUser()
+  // const user = currentUser()
+  const { user } = useAuthState()
 
   const logout = async () => {
     cache.evict({ fieldName: 'me' })
@@ -107,9 +109,9 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
       <View style={CONTENT_CONTAINER}>
         <View>
           <ProgressiveImage
-            source={{ uri: user?.me?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif' }}
+            source={{ uri: user?.picture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif' }}
             style={PROFILE_IMAGE} />
-          <Text>{user?.me?.name}</Text>
+          <Text>{user?.name}</Text>
           <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={pickImage} text="Pick Image" />
           {media && <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={updateProfilePicture} text="Save" />}
         </View>

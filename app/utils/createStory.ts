@@ -4,17 +4,18 @@ import { Alert } from 'react-native'
 import { uploadImage } from './uploadImage'
 
 const USERS = gql`
-  {
-  users {
-    id
-    name
-    profilePicture
-    stories {
-      id
-      url
+{
+    User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
+      name
+      password
+      profilePicture
+      Stories(order_by: {createdAt: desc}) {
+        id
+        url
+        createdAt
+      }
     }
   }
-}
 `
 export const handleCreateStory = async (photo, createStory, navigation) => {
   try {

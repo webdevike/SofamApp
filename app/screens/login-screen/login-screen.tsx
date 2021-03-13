@@ -1,6 +1,6 @@
 import React, { FunctionComponent as Component, useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextInput, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native"
+import { ViewStyle, View, TextInput, TextStyle, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import { Button, ErrorPopup, Text } from "../../components"
 import { color, spacing, typography } from "../../theme"
 import { useReactiveVar } from "@apollo/client"
@@ -9,6 +9,9 @@ import { accessTokenVar, cache } from '../../cache'
 import { IS_LOGGED_IN } from '../../graphql'
 import { StatusBar } from "expo-status-bar"
 import { useLoginMutation } from "../../generated/graphql"
+import jwtDecode from "jwt-decode"
+import * as AuthSession from 'expo-auth-session';
+
 
 interface Props {
   navigation: any
@@ -80,23 +83,68 @@ const LOGIN_BUTTON_TEXT: TextStyle = {
   letterSpacing: 2,
 }
 
+const auth0ClientId = "xDqa07SH6QNX6J1i0lq1UILY1KsOVJjT";
+const authorizationEndpoint = "https://ikey2244.auth0.com/authorize";
+
+const useProxy = Platform.select({ web: false, default: true });
+const redirectUri = AuthSession.makeRedirectUri({ useProxy });
+
 
 export const LoginScreen: Component<Props> = observer(function LoginScreen(props) {
   const [login, { loading, error }] = useLoginMutation()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const loggedIn = useReactiveVar(accessTokenVar)
-  const handleLogin = async () => {
-    const { data }: any = await login({
-      variables: {
-        email: email,
-        password: password,
+
+  // TODO refactor
+  const [request, result, promptAsync] = AuthSession.useAuthRequest(
+    {
+      redirectUri,
+      clientId: auth0ClientId,
+      // id_token will return a JWT token
+      responseType: 'id_token',
+      // retrieve the user's profile
+      scopes: ['openid', 'profile'],
+      extraParams: {
+        // ideally, this will be a random value
+        nonce: 'nonce',
       },
-    })
-    console.log(data, 'login data')
-    saveString("@authToken", data.login)
-    accessTokenVar(true)
-  }
+    },
+    { authorizationEndpoint }
+    );
+    
+    React.useEffect(() => {
+      if (result) {
+        if (result.error) {
+          Alert.alert(
+            'Authentication error',
+              result.params.error_description || 'something went wrong'
+            );
+            return;
+          }
+          if (result.type === 'success') {
+            // Retrieve the JWT token and decode it
+            const jwtToken = result.params.id_token;
+            const decoded = jwtDecode(jwtToken);
+            saveString("@authToken", jwtToken)
+            accessTokenVar(true)
+          }
+        }
+      }, [result]);
+      
+      
+  // const handleLogin = async () => {
+  //   const { data }: any = await login({
+  //     variables: {
+  //       email: email,
+  //       password: password,
+  //     },
+  //   })
+  //   console.log(data, 'login data')
+  //   saveString("@authToken", data.login)
+  //   accessTokenVar(true)
+  // }
+
   return (
     <View style={FULL}>
       <KeyboardAvoidingView
@@ -128,7 +176,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           style={LOGIN_BUTTON}
           textStyle={LOGIN_BUTTON_TEXT}
           text={loading ? '' : 'Login'}
-          onPress={handleLogin}
+          onPress={() => promptAsync({ useProxy })}
         >
           {loading && <ActivityIndicator size="large" color="white" />}
         </Button>
