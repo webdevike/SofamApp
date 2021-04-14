@@ -92,6 +92,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
         password: password,
       },
     })
+    console.log("🚀 ~ file: login-screen.tsx ~ line 90 ~ handleLogin ~ data", data)
     saveString("@authToken", data.login)
     accessTokenVar(true)
   }

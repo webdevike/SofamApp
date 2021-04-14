@@ -3,23 +3,20 @@ import { observer } from "mobx-react-lite"
 import {
   SafeAreaView,
   FlatList,
-  ImageStyle,
-  ViewStyle,
   View,
   Text,
   RefreshControl,
   TouchableOpacity,
-  TextStyle,
   StyleSheet,
 } from "react-native"
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
 import { useNavigation } from "@react-navigation/native"
-import { ProgressiveImage } from "../../components"
+import { Button, ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
 import { StatusBar } from 'expo-status-bar'
-import { useGetUsersQuery } from "../../generated/graphql"
-import { gql, useQuery } from "@apollo/client"
+import { useGroupQuery } from "../../generated/graphql"
+import { currentUser } from "../../utils/currentUser"
 
 const styles = StyleSheet.create({
   IMAGE: {
@@ -79,31 +76,21 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 225,
     width: 100,
-    backgroundColor: 'red'
   },
   profilePictureContainer: {
     flex: 1,
   }
 })
-// hasura operation
-// const USERS = gql`
-// {
-//     User(order_by: {Stories_aggregate: {min: {createdAt: asc}}}) {
-//       name
-//       password
-//       profilePicture
-//       Stories(order_by: {createdAt: desc}) {
-//         id
-//         url
-//         createdAt
-//       }
-//     }
-//   }
-// `
-
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const { loading, data: userStories, refetch } = useGetUsersQuery()
+  const {loading: userLoading, user} = currentUser()
+  // const { loading, data: userStories, refetch } = useGetUsersQuery()
+  const { loading, data: userStories, refetch } = useGroupQuery({
+    skip: !user,
+    variables: {
+      id: user?.me?.groups[0].id
+    }
+  })
   const [refreshing, setRefreshing] = useState(false)
 
   const onRefresh = React.useCallback(async () => {
@@ -215,7 +202,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             <View style={styles.WRAPPER}>
               {userStories && <FlatList
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                data={userStories?.users}
+                data={userStories?.group.users}
                 renderItem={renderStories}
                 keyExtractor={item => item.id}
                 showsVerticalScrollIndicator={false}

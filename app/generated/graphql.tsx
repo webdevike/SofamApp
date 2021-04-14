@@ -16,6 +16,8 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
+  groups?: Maybe<Array<Maybe<Group>>>;
+  group?: Maybe<Group>;
   memory?: Maybe<Memory>;
   memories?: Maybe<Array<Maybe<Memory>>>;
   allMemories?: Maybe<Array<Maybe<Memory>>>;
@@ -23,6 +25,37 @@ export type Query = {
   stories?: Maybe<Array<Maybe<Story>>>;
   users?: Maybe<Array<Maybe<User>>>;
   me?: Maybe<User>;
+};
+
+
+export type QueryGroupArgs = {
+  id: Scalars['ID'];
+};
+
+export type Group = {
+  __typename?: 'Group';
+  id: Scalars['ID'];
+  name?: Maybe<Scalars['String']>;
+  users?: Maybe<Array<Maybe<User>>>;
+};
+
+export type User = {
+  __typename?: 'User';
+  id?: Maybe<Scalars['ID']>;
+  name?: Maybe<Scalars['String']>;
+  profilePicture?: Maybe<Scalars['String']>;
+  notificationToken?: Maybe<Scalars['String']>;
+  stories?: Maybe<Array<Maybe<Story>>>;
+  memories?: Maybe<Array<Maybe<Memory>>>;
+  groups?: Maybe<Array<Maybe<Group>>>;
+};
+
+export type Story = {
+  __typename?: 'Story';
+  id: Scalars['ID'];
+  url: Scalars['String'];
+  signedRequest?: Maybe<Scalars['String']>;
+  user?: Maybe<User>;
 };
 
 export type Memory = {
@@ -37,27 +70,9 @@ export type Memory = {
   url?: Maybe<Scalars['String']>;
 };
 
-export type Story = {
-  __typename?: 'Story';
-  id: Scalars['ID'];
-  url: Scalars['String'];
-  signedRequest?: Maybe<Scalars['String']>;
-  user?: Maybe<User>;
-};
-
-export type User = {
-  __typename?: 'User';
-  id?: Maybe<Scalars['ID']>;
-  name?: Maybe<Scalars['String']>;
-  profilePicture?: Maybe<Scalars['String']>;
-  notificationToken?: Maybe<Scalars['String']>;
-  stories?: Maybe<Array<Maybe<Story>>>;
-  memories?: Maybe<Array<Maybe<Memory>>>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
-  createGroup?: Maybe<Scalars['String']>;
+  createGroup?: Maybe<Group>;
   login?: Maybe<Scalars['String']>;
   createMemory?: Maybe<Memory>;
   updateMemory?: Maybe<Memory>;
@@ -68,6 +83,11 @@ export type Mutation = {
   deleteStory?: Maybe<Scalars['String']>;
   uploadFile?: Maybe<File>;
   updateUser?: Maybe<User>;
+};
+
+
+export type MutationCreateGroupArgs = {
+  name?: Maybe<Scalars['String']>;
 };
 
 
@@ -156,13 +176,6 @@ export type File = {
   url?: Maybe<Scalars['String']>;
 };
 
-export type Group = {
-  __typename?: 'Group';
-  id: Scalars['ID'];
-  name?: Maybe<Scalars['String']>;
-  users?: Maybe<Array<Maybe<User>>>;
-};
-
 export type CreateMemoryMutationVariables = Exact<{
   file: Scalars['Upload'];
   title: Scalars['String'];
@@ -241,6 +254,27 @@ export type UpdateUserMutation = (
   )> }
 );
 
+export type GroupQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type GroupQuery = (
+  { __typename?: 'Query' }
+  & { group?: Maybe<(
+    { __typename?: 'Group' }
+    & Pick<Group, 'name'>
+    & { users?: Maybe<Array<Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'profilePicture'>
+      & { stories?: Maybe<Array<Maybe<(
+        { __typename?: 'Story' }
+        & Pick<Story, 'url'>
+      )>>> }
+    )>>> }
+  )> }
+);
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -249,6 +283,10 @@ export type MeQuery = (
   & { me?: Maybe<(
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'profilePicture' | 'notificationToken'>
+    & { groups?: Maybe<Array<Maybe<(
+      { __typename?: 'Group' }
+      & Pick<Group, 'id' | 'name'>
+    )>>> }
   )> }
 );
 
@@ -477,6 +515,47 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const GroupDocument = gql`
+    query group($id: ID!) {
+  group(id: $id) {
+    name
+    users {
+      id
+      name
+      profilePicture
+      stories {
+        url
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGroupQuery__
+ *
+ * To run a query within a React component, call `useGroupQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGroupQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGroupQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGroupQuery(baseOptions: Apollo.QueryHookOptions<GroupQuery, GroupQueryVariables>) {
+        return Apollo.useQuery<GroupQuery, GroupQueryVariables>(GroupDocument, baseOptions);
+      }
+export function useGroupLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GroupQuery, GroupQueryVariables>) {
+          return Apollo.useLazyQuery<GroupQuery, GroupQueryVariables>(GroupDocument, baseOptions);
+        }
+export type GroupQueryHookResult = ReturnType<typeof useGroupQuery>;
+export type GroupLazyQueryHookResult = ReturnType<typeof useGroupLazyQuery>;
+export type GroupQueryResult = Apollo.QueryResult<GroupQuery, GroupQueryVariables>;
 export const MeDocument = gql`
     query me {
   me {
@@ -484,6 +563,10 @@ export const MeDocument = gql`
     name
     profilePicture
     notificationToken
+    groups {
+      id
+      name
+    }
   }
 }
     `;

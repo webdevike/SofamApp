@@ -1,0 +1,15 @@
+
+
+ query group($id: ID!){
+  group(id: $id) {
+    name
+    users {
+      id
+      name
+      profilePicture
+      stories {
+        url
+      }
+    }
+  }
+}

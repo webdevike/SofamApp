@@ -1,6 +1,0 @@
- query usersNotificationToken {
-    usersNotificationToken {
-      id
-      notificationToken  
-    }
-  }

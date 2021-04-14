@@ -13,6 +13,6 @@ export const progressiveImageStyles = {
   container: {
     borderRadius: 20,
     // marginVertical: spacing[2],
-    backgroundColor: '#e1e4e8',
+    // backgroundColor: '#e1e4e8',
   },
 }

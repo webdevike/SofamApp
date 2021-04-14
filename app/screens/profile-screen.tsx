@@ -1,17 +1,18 @@
 import React, { FunctionComponent as Component } from "react"
 import { observer } from "mobx-react-lite"
-import { Image, SafeAreaView, Text, TextStyle, View, ViewStyle } from 'react-native'
+import { Image, ImageStyle, SafeAreaView, Text, TextStyle, View, ViewStyle } from 'react-native'
 import { color, spacing } from "../theme"
 import { Button, ProgressiveImage } from "../components"
 import { accessTokenVar, cache } from "../cache"
-import { clear, loadString } from "../utils/storage"
+import { clear } from "../utils/storage"
 import { currentUser } from "../utils/currentUser"
 import { useImagePicker } from "../hooks/useImagePicker"
 import { MeDocument, useUpdateUserMutation } from "../generated/graphql"
 import { ReactNativeFile } from "apollo-upload-client"
-import { gql, useMutation, useQuery } from "@apollo/client"
+import { gql, useMutation } from "@apollo/client"
 import { uploadImage } from "../utils/uploadImage"
 import { useNotifcations } from "../hooks/useNotifications"
+import { ScrollView } from "react-native-gesture-handler"
 
 const UPDATE_USER = gql`
 mutation updateUser(
@@ -41,7 +42,7 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
 
   // if (!loading) console.log("🚀 ~ file: profile-screen.tsx ~ line 38 ~ ProfileScreen ~ data", data)
   const [media, pickImage, takePicture] = useImagePicker()
-  const user = currentUser()
+  const { loading: userLoading, user } = currentUser()
 
   const logout = async () => {
     cache.gc()
@@ -60,7 +61,7 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
       })
       const { data } = await updateUser({
         variables: {
-          id: user.me.id,
+          id: user?.me.id,
           profilePicture: file,
           notificationToken
         },
@@ -80,16 +81,24 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
 
   const ROOT = {
     flex: 1,
-    margin: spacing[4],
+    // margin: spacing[4],
   }
   const CONTENT_CONTAINER: ViewStyle = {
     flex: 1,
-    justifyContent: "space-between"
   }
 
-  const PROFILE_IMAGE = {
-    height: 400,
-    width: "100%"
+  const IMAGE_CONTAINER: ViewStyle = {
+    flex: 1,
+    alignItems: 'center',
+  }
+
+  const PROFILE_IMAGE: ImageStyle = {
+    height: 150,
+    width: 150,
+    borderRadius: 100,
+    // marginTop: 20
+    // position: 'absolute',
+    // top: 75,
   }
 
   const LOGIN_BUTTON: ViewStyle = {
@@ -104,15 +113,17 @@ export const ProfileScreen: Component = observer(function ProfileScreen() {
   return (
     <SafeAreaView style={ROOT}>
       <View style={CONTENT_CONTAINER}>
-        <View>
+        <View style={IMAGE_CONTAINER}>
           <ProgressiveImage
-            source={{ uri: user?.me?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif' }}
+            source={{ uri: user?.me?.profilePicture || '"https://images.unsplash.com/photo-1529405643518-5cf24fddfc0b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"' }}
             style={PROFILE_IMAGE} />
+        </View>
+        <View style={{ flex: 5, marginTop: 100 }}>
           <Text>{user?.me?.name}</Text>
           <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={pickImage} text="Pick Image" />
           {media && <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={updateProfilePicture} text="Save" />}
+          <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={logout} text="Logout" />
         </View>
-        <Button style={LOGIN_BUTTON} textStyle={LOGIN_BUTTON_TEXT} onPress={logout} text="Logout" />
       </View>
     </SafeAreaView>
   )

@@ -4,5 +4,9 @@
       name
       profilePicture
       notificationToken
+      groups {
+        id
+        name
+      }
     }
   }

@@ -115,7 +115,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const dummy = useRef();
-  const user = currentUser()
+  const {user} = currentUser()
   
   const {loading, data} = useQuery(NOTIFICATION_TOKENS)
   const filteredResults = data?.users.filter(x => !!x.notificationToken && x.notificationToken !== user?.me?.notificationToken)

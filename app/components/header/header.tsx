@@ -1,5 +1,5 @@
 import React, { FunctionComponent as Component, useEffect, useState } from "react"
-import { View, ViewStyle, TextStyle, Image, ImageStyle } from "react-native"
+import { View, ViewStyle, TextStyle, ImageStyle } from "react-native"
 import { HeaderProps } from "./header.props"
 import { Button } from "../button/button"
 import { Text } from "../text/text"
@@ -10,6 +10,7 @@ import { ProgressiveImage } from ".."
 import { currentUser } from "../../utils/currentUser"
 import * as Updates from 'expo-updates'
 import { TouchableOpacity } from "react-native-gesture-handler"
+import { useNavigation, useRoute } from "@react-navigation/native"
 
 // static styles
 const ROOT: ViewStyle = {
@@ -37,6 +38,13 @@ const RIGHT: ViewStyle = { width: 32 }
  */
 
 export const Header: Component<HeaderProps> = props => {
+  const route = useRoute()
+  const currentScreen = route.state?.index ?? 0
+  // const [isCurrentScreen, setCurrentScreen] = useState()
+
+  // useEffect(() => {
+  //   setCurrentScreen(currentScreen)
+  // }, [currentScreen, isCurrentScreen])
   const {
     onLeftPress,
     onRightPress,
@@ -60,7 +68,7 @@ export const Header: Component<HeaderProps> = props => {
     })()
   }, [])
 
-  const updateApp = async() => {
+  const updateApp = async () => {
     try {
       if (update.isAvailable) {
         await Updates.fetchUpdateAsync()
@@ -72,8 +80,7 @@ export const Header: Component<HeaderProps> = props => {
     }
   }
 
-  const user = currentUser()
-
+  const { loading, user } = currentUser()
   return (
     <>
       <View style={{ ...ROOT, ...style }}>
@@ -87,9 +94,8 @@ export const Header: Component<HeaderProps> = props => {
         <View style={TITLE_MIDDLE}>
           <Text style={{ ...TITLE, ...titleStyle }} text={header} />
         </View>
-        {rightIcon ? (
+        {rightIcon && currentScreen !== 2 ? (
           <Button preset="link" onPress={onRightPress}>
-
             <View>
               <ProgressiveImage
                 source={{ uri: user?.me?.profilePicture || '"https://images.unsplash.com/photo-1529405643518-5cf24fddfc0b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"' }}
@@ -104,7 +110,7 @@ export const Header: Component<HeaderProps> = props => {
       {update.isAvailable && <TouchableOpacity onPress={updateApp} style={{ backgroundColor: color.palette.lightGreen, padding: spacing[2], marginBottom: spacing[2] }}>
         <Text style={{ color: 'white', textAlign: 'center' }}>Click me to update App
         </Text>
-      </TouchableOpacity> }
+      </TouchableOpacity>}
 
     </>
   )
