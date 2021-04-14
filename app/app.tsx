@@ -68,11 +68,19 @@ const App: Component<{}> = () => {
     uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
   })
 
+  const checkAuth = async () => {
+    cache.writeQuery({
+      query: gql`{isLoggedIn @client}`,
+      data: {
+        isLoggedIn: loggedIn,
+      },
+    })
+  }
+
   const authLink = setContext(async (_, { headers }) => {
     const token = await loadString("@authToken")
     return {
       headers: {
-        'x-hasura-admin-secret': 'qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F',
         ...headers,
         authorization: token ? `Bearer ${token}` : "",
       }
@@ -87,7 +95,7 @@ const App: Component<{}> = () => {
   useEffect(() => {
     ; (async () => {
       await setToken()
-      // await checkAuth()
+      await checkAuth()
       await initFonts()
       setupRootStore().then(setRootStore)
     })()
