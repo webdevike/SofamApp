@@ -124,7 +124,8 @@ export const ChatScreen: Component = observer(function ChatScreen() {
     const notifications = filteredResults.map((item) => {
       return {
         to: item.notificationToken,
-        body: 'hello',
+        title: user.me.name,
+        body: formValue,
         badge: 1,
       }
     })
