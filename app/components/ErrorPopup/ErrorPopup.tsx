@@ -1,5 +1,6 @@
 import * as React from "react"
 import { StyleSheet, Text, View } from "react-native"
+import { ScrollView } from "react-native-gesture-handler"
 import { color, spacing } from "../../theme"
 
 export interface ErrorPopupProps {
@@ -17,7 +18,6 @@ const styles = StyleSheet.create({
     backgroundColor: color.palette.angry,
     borderRadius: 10,
     flex: 1,
-    height: 50,
     left: 0,
     margin: spacing[4],
     padding: spacing[4],

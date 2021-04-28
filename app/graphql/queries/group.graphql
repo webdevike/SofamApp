@@ -8,7 +8,9 @@
       name
       profilePicture
       stories {
+        id
         url
+        createdAt
       }
     }
   }

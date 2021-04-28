@@ -43,7 +43,6 @@ const styles = StyleSheet.create({
     marginRight: spacing[2]
   },
   OVERLAY: {
-    backgroundColor: 'rgba(0, 0, 0, .25)',
     borderRadius: 20,
     bottom: 0,
     height: '100%',
@@ -83,15 +82,18 @@ const styles = StyleSheet.create({
 })
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
-  const {loading: userLoading, user} = currentUser()
-  // const { loading, data: userStories, refetch } = useGetUsersQuery()
+   const {loading: userLoading, user} = currentUser()
   const { loading, data: userStories, refetch } = useGroupQuery({
     skip: !user,
     variables: {
       id: user?.me?.groups[0].id
-    }
+    },
+    pollInterval: 500
   })
+  // console.log("🚀 ~ file: home-screen.tsx ~ line 103 ~ items ~ items", items)
+  
   const [refreshing, setRefreshing] = useState(false)
+  
 
   const onRefresh = React.useCallback(async () => {
     refetch()
@@ -133,13 +135,15 @@ export const HomeScreen: Component = observer(function HomeScreen() {
       <View style={styles.IMAGE_CONTAINER}>
         <TouchableOpacity
           disabled={!uri}
-          onPress={() => uri ? navigation.navigate('story', { ...item }) : null}>
+          onPress={() => {
+            uri ? navigation.navigate('story', { ...item }) : null}
+            }>
           {storyPreview() ? storyPreview() : <ProgressiveImage
             source={{ uri: item?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif'  }}
             style={styles.IMAGE}
           />}
-          <View style={styles.OVERLAY}>
-            {storyPreview() && <View style={styles.newIndicator}><Text style={styles.newIndicatorText}>New!</Text></View>}
+          <View style={{...styles.OVERLAY, backgroundColor: storyPreview() ? 'rgba(0, 0, 0, .25)' : 'rgba(0, 0, 0, .55)' ,}}>
+            {/* {storyPreview() && <View style={styles.newIndicator}><Text style={styles.newIndicatorText}>New!</Text></View>} */}
             <Text style={styles.OVERLAY_TEXT}>{item.name}</Text>
           </View>
         </TouchableOpacity>

@@ -56,6 +56,7 @@ export type Story = {
   url: Scalars['String'];
   signedRequest?: Maybe<Scalars['String']>;
   user?: Maybe<User>;
+  createdAt: Scalars['String'];
 };
 
 export type Memory = {
@@ -269,7 +270,7 @@ export type GroupQuery = (
       & Pick<User, 'id' | 'name' | 'profilePicture'>
       & { stories?: Maybe<Array<Maybe<(
         { __typename?: 'Story' }
-        & Pick<Story, 'url'>
+        & Pick<Story, 'id' | 'url' | 'createdAt'>
       )>>> }
     )>>> }
   )> }
@@ -308,11 +309,7 @@ export type AllStoriesQuery = (
   { __typename?: 'Query' }
   & { stories?: Maybe<Array<Maybe<(
     { __typename?: 'Story' }
-    & Pick<Story, 'id' | 'signedRequest' | 'url'>
-    & { user?: Maybe<(
-      { __typename?: 'User' }
-      & Pick<User, 'id' | 'name' | 'profilePicture'>
-    )> }
+    & Pick<Story, 'id' | 'createdAt'>
   )>>> }
 );
 
@@ -524,7 +521,9 @@ export const GroupDocument = gql`
       name
       profilePicture
       stories {
+        id
         url
+        createdAt
       }
     }
   }
@@ -635,13 +634,7 @@ export const AllStoriesDocument = gql`
     query allStories {
   stories {
     id
-    signedRequest
-    url
-    user {
-      id
-      name
-      profilePicture
-    }
+    createdAt
   }
 }
     `;

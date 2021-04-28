@@ -14,6 +14,12 @@ interface Props {
   navigation: any
 }
 
+const styles = {
+  errorMessage: {
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[2],
+  }
+}
 // Styles
 const TEXT: TextStyle = {
   color: color.palette.white,
@@ -86,15 +92,18 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const handleLogin = async () => {
-    const { data }: any = await login({
-      variables: {
-        email: email,
-        password: password,
-      },
-    })
-    console.log("🚀 ~ file: login-screen.tsx ~ line 90 ~ handleLogin ~ data", data)
-    saveString("@authToken", data.login)
-    accessTokenVar(true)
+    try {
+      const { data }: any = await login({
+        variables: {
+          email: email,
+          password: password,
+        },
+      })
+      saveString("@authToken", data.login)
+      accessTokenVar(true)
+    } catch (error) {
+      console.log(error)
+    }
   }
   return (
     <View style={FULL}>
@@ -106,6 +115,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           <Text style={HEADING}>Welcome To Sofam</Text>
           <Text style={CAPTION}>The only social media for families</Text>
         </View>
+        {error && <ErrorPopup error={error} />}
         <TextInput
           placeholderTextColor="#BDBDBD"
           style={TEXT_INPUT}
@@ -129,7 +139,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           text={loading ? '' : 'Login'}
           onPress={handleLogin}
         >
-          {loading && <ActivityIndicator size="large" color="white" />}
+          {loading && !error && <ActivityIndicator size="small" color="white" />}
         </Button>
         <View style={BOTTOM_TEXT_CONTAINER}>
           <Text style={{ marginRight: spacing[1] }}>Don't have an account?</Text>
@@ -138,7 +148,7 @@ export const LoginScreen: Component<Props> = observer(function LoginScreen(props
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-      {error && <ErrorPopup error={error} />}
+      
       <StatusBar style="light" />
     </View>
   )

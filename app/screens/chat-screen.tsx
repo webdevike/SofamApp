@@ -111,17 +111,19 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   const [messages] = useCollectionData<Message>(query, { idField: 'id' })
   const [formValue, setFormValue] = useState('')
   const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
-  const dummy = useRef();
+  // const [notification, setNotification] = useState(false);
+  // const notificationListener = useRef();
+  // const responseListener = useRef();
+  // const dummy = useRef()
   const {user} = currentUser()
   
-  const {loading, data} = useQuery(NOTIFICATION_TOKENS)
-  const filteredResults = data?.users.filter(x => !!x.notificationToken && x.notificationToken !== user?.me?.notificationToken)
+  const {data} = useQuery(NOTIFICATION_TOKENS)
+  const filteredResults = data?.users.filter((u: { notificationToken: any }, index: any) => {
+    return !!u.notificationToken && u.notificationToken !== user?.me?.notificationToken && data?.users.indexOf(u) === index
+  })
 
   async function sendPushNotification() {
-    const notifications = filteredResults.map((item) => {
+    const notifications = filteredResults.map((item: { notificationToken: any }) => {
       return {
         to: item.notificationToken,
         title: user.me.name,
@@ -143,25 +145,27 @@ export const ChatScreen: Component = observer(function ChatScreen() {
 
   const userId = user?.me.id
 
+  
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+    
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
+    // notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+    //   setNotification(notification);
+    // });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
+    // responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+    //   console.log(response);
+    // });
 
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
-    };
+    // return () => {
+    //   Notifications.removeNotificationSubscription(notificationListener);
+    //   Notifications.removeNotificationSubscription(responseListener);
+    // };
   }, []);
 
   const sendMessage = async (e) => {
-    await sendPushNotification(expoPushToken)
+    await sendPushNotification()
     e.preventDefault()
 
     await messagesRef.add({
@@ -178,7 +182,7 @@ export const ChatScreen: Component = observer(function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={ROOT}>
+    <KeyboardAvoidingView style={ROOT} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView ref={ref => {scrollView = ref}} onContentSizeChange={() => scrollView.scrollToEnd({animated: true})}>
         <View style={MESSAGES_CONTAINER}>
           {messages?.map(msg =>
@@ -190,8 +194,6 @@ export const ChatScreen: Component = observer(function ChatScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TextInput
           placeholderTextColor={color.palette.lightGrey}
           style={TEXT_INPUT}
@@ -202,7 +204,8 @@ export const ChatScreen: Component = observer(function ChatScreen() {
           onSubmitEditing={(e) => sendMessage(e)}
           returnKeyType="send"
         />
-      </KeyboardAvoidingView>
+      </ScrollView>
+        
       <StatusBar style="auto" />
     </KeyboardAvoidingView>
   )

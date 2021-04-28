@@ -36,7 +36,7 @@ const USERS = gql`
 }
 `
 
-export const CameraScreen: Component = observer(function CameraScreen() {
+export const CameraScreen: Component = observer(function CameraScreen({route}) {
   const navigation = useNavigation()
   const [hasPermission, setHasPermission] = useState(null)
   const [type, setType] = useState(Camera.Constants.Type.back)
@@ -74,7 +74,14 @@ export const CameraScreen: Component = observer(function CameraScreen() {
       })
 
       if(!result.cancelled) {
-        navigation.navigate('create', { ...result })
+        if(route?.params?.profile) {
+          console.log('this was called')
+          navigation.navigate('profile', { ...result })
+        } else {
+          console.log('that was called')
+          navigation.navigate('create', { ...result })
+          
+        }
       }
 
     } catch (error) {
@@ -92,7 +99,11 @@ export const CameraScreen: Component = observer(function CameraScreen() {
         const photo = await ref.current.takePictureAsync({
           quality: 0.1,
         })
-        navigation.navigate('create', { ...photo })
+        if(route?.params?.profile) {
+          navigation.navigate('profile', { ...photo })
+        } else {
+          navigation.navigate('create', { ...photo })
+        }
       }
     }
     catch (error) {

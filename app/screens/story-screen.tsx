@@ -6,6 +6,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { color, spacing } from "../theme"
 import { ImageSlider } from "../components/Slider/ImageSlider"
 import { CommonActions, useNavigation } from "@react-navigation/native"
+import { StatusBar } from "expo-status-bar"
 
 const ROOT: ViewStyle = {
   backgroundColor: color.palette.black,
@@ -41,6 +42,7 @@ export const StoryScreen: Component = observer(function StoryScreen({ route }) {
       <TouchableOpacity onPress={() => navigation.dispatch(CommonActions.goBack())} style={{ position: "absolute", right: 25, top: 125, backgroundColor: "lightgray", borderRadius: 100, width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <AntDesign name="close" size={15} color="black" />
       </TouchableOpacity>
+      <StatusBar style='light' />
     </View>
   )
 })

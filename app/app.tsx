@@ -23,6 +23,7 @@ import 'firebase/firestore'
 import { enableScreens } from "react-native-screens"
 import { clear, loadString, saveString } from "./utils/storage"
 import { Platform } from "react-native"
+import { Notifications } from "expo"
 
 enableScreens()
 
@@ -63,9 +64,10 @@ const App: Component<{}> = () => {
 
   const uploadLink = createUploadLink({
     // uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
-    // uri: 'https://sofam-api.ikey2244.vercel.app/graphql'
+    // uri: 'https://sofam-api.vercel.app/graphql'
     // uri: 'https://sofam-api.herokuapp.com/graphql'
-    uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://192.168.1.113:4000/graphql'
+
+    uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://localhost:4000/graphql'
   })
 
   const checkAuth = async () => {
@@ -97,6 +99,7 @@ const App: Component<{}> = () => {
       await setToken()
       await checkAuth()
       await initFonts()
+
       setupRootStore().then(setRootStore)
     })()
   }, [])
@@ -107,19 +110,19 @@ const App: Component<{}> = () => {
   // with your own loading component if you wish.
   if (!rootStore) return null
 
-  const errorLink = onError(async ({ graphQLErrors, networkError }) => {
-    console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ networkError", networkError)
-    console.log("🚀 ~ file: app.tsx ~ line 108 ~ errorLink ~ graphQLErrors", graphQLErrors)
-    // ? This is a fail safe for when someonething happens just clear cache and send to login screen
-    if (networkError) {
-      cache.gc()
-      await clear()
-      accessTokenVar(false)
-    }
-  })
+  // const errorLink = onError(({ graphQLErrors, networkError }) => {
+  //   if (graphQLErrors) {
+  //     graphQLErrors.map(({ message, locations, path }) =>
+  //       console.log(
+  //       `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
+  //       ),
+  //     )
+  //   }
+  //   if (networkError) console.log(`[Network error]: ${networkError}`)
+  // })
 
   const client = new ApolloClient({
-    link: ApolloLink.from([authLink, errorLink, uploadLink]),
+    link: ApolloLink.from([authLink, uploadLink]),
     cache,
   })
 

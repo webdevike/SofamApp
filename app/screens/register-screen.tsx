@@ -116,11 +116,11 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
-  const [secretCode, setsecretCode] = useState("")
-  const [hasPermission, setHasPermission] = useState(null)
+  // const [secretCode, setsecretCode] = useState("")
+  // const [hasPermission, setHasPermission] = useState(null)
   const [pickerResult, setPickerResult] = useState<FileDataObject>()
-  const loggedIn = useReactiveVar(accessTokenVar)
-  const navigation = useNavigation()
+  // const loggedIn = useReactiveVar(accessTokenVar)
+  // const navigation = useNavigation()
 
 
   const handleRegister = async () => {
@@ -146,7 +146,6 @@ export const RegisterScreen: Component = observer(function RegisterScreen(props)
       }
     })
     
-    // console.log("🚀 ~ file: register-screen.tsx ~ line 162 ~ handleRegister ~ data", data)
     if (!error) {
       // uploadImage(file, data.register.signedRequest)
       await saveString("@authToken", data.register.accessToken)

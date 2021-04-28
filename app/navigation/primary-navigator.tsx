@@ -18,6 +18,7 @@ import { Header } from "../components"
 import { spacing } from "../theme"
 import { useNavigation, useRoute } from "@react-navigation/native"
 import { currentUser } from "../utils/currentUser"
+import { Notifications } from "expo"
 
 export type PrimaryParamList = {
   home: undefined,
@@ -50,6 +51,15 @@ export function PrimaryNavigator(props) {
   const navigation = useNavigation()
   const currentScreen = route.state?.index ?? 0
   // const user = currentUser()
+
+  const handleNotification = (notification) => {
+    const { data } = notification
+    if (data.screen) navigation.navigate(data.screen)
+  }
+
+  useEffect(() => {
+    Notifications.addListener(handleNotification)
+  }, [])
 
   const goToPage = () => {
     navigation.navigate('profile')
