@@ -90,7 +90,6 @@ export const HomeScreen: Component = observer(function HomeScreen() {
     },
     pollInterval: 500
   })
-  // console.log("🚀 ~ file: home-screen.tsx ~ line 103 ~ items ~ items", items)
   
   const [refreshing, setRefreshing] = useState(false)
   

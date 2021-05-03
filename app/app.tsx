@@ -66,8 +66,8 @@ const App: Component<{}> = () => {
     // uri: 'https://tops-phoenix-38.hasura.app/v1/graphql',
     // uri: 'https://sofam-api.vercel.app/graphql'
     // uri: 'https://sofam-api.herokuapp.com/graphql'
-
-    uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://localhost:4000/graphql'
+    uri: 'https://wistful-laborer-production.up.railway.app/graphql'
+    // uri: Platform.OS === 'android' ? 'http://192.168.0.12:4000/graphql' : 'http://localhost:4000/graphql'
   })
 
   const checkAuth = async () => {
