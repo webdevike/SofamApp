@@ -176,7 +176,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
           />}
           <View style={{...styles.OVERLAY, backgroundColor: storyPreview() ? 'rgba(0, 0, 0, .25)' : 'rgba(0, 0, 0, .55)' ,}}>
             {/* {storyPreview() && <View style={styles.newIndicator}><Text style={styles.newIndicatorText}>New!</Text></View>} */}
-            <Text style={styles.OVERLAY_TEXT}>{item.name}</Text>
+            <Text style={styles.OVERLAY_TEXT}>{item?.User.name}</Text>
           </View>
         </TouchableOpacity>
       </View>
