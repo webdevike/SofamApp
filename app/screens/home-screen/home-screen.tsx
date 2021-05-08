@@ -1,4 +1,4 @@
-import React, { FunctionComponent as Component, useState } from "react"
+import React, { FunctionComponent as Component, useMemo, useState } from "react"
 import { observer } from "mobx-react-lite"
 import {
   SafeAreaView,
@@ -12,11 +12,40 @@ import {
 import { Video } from 'expo-av'
 import { color, spacing, typography } from "../../theme"
 import { useNavigation } from "@react-navigation/native"
-import { Button, ProgressiveImage } from "../../components"
+import { Button, ErrorPopup, ProgressiveImage } from "../../components"
 import SkeletonContent from "react-native-skeleton-content"
 import { StatusBar } from 'expo-status-bar'
 import { useGroupQuery } from "../../generated/graphql"
 import { currentUser } from "../../utils/currentUser"
+import useSWR from "swr"
+import { GraphQLClient } from 'graphql-request'
+
+const client = new GraphQLClient('https://tops-phoenix-38.hasura.app/v1/graphql')
+const requestHeaders = {
+  'x-hasura-admin-secret': "qqzN2LIvQyzDU8XUn07mw3vJFyE3iTEYrgCgDyxZh07zy4F",
+}
+const variables = {}
+
+const GROUP_QUERY =  `
+query GetGroupByID($id: Int!) {
+  _GroupToUser(order_by: {User: {Stories_aggregate: {count: desc}}}, where: {Group: {id: {_eq: $id}}}) {
+    User {
+      id
+      name
+      profilePicture
+      Stories(order_by: {createdAt: desc}) {
+        id
+        url
+        createdAt
+      }
+    }
+  }
+}`
+
+const fetcher = (query, variables) => {
+  
+  return client.request(query, variables, requestHeaders)
+}
 
 const styles = StyleSheet.create({
   IMAGE: {
@@ -83,28 +112,32 @@ const styles = StyleSheet.create({
 export const HomeScreen: Component = observer(function HomeScreen() {
   const navigation = useNavigation()
    const {loading: userLoading, user} = currentUser()
-  const { loading, data: userStories, refetch } = useGroupQuery({
-    skip: !user,
-    variables: {
-      id: user?.me?.groups[0].id
-    },
-    pollInterval: 500
-  })
+  // const { loading, data: userStories, refetch } = useGroupQuery({
+  //   skip: !user,
+  //   variables: {
+  //     id: user?.me?.groups[0].id
+  //   }
+  // })
+
+  const id = user?.me?.groups[0].id
+  const variables = useMemo(() => ({ id }), [id])
+  const { data, error } = useSWR([GROUP_QUERY, variables], fetcher, {refreshInterval: 500});
+  const loading = !data
   
   const [refreshing, setRefreshing] = useState(false)
   
 
-  const onRefresh = React.useCallback(async () => {
-    refetch()
-    if (loading) {
-      setRefreshing(true)
-    }
-    setRefreshing(false)
-  }, [])
+  // const onRefresh = React.useCallback(async () => {
+  //   refetch()
+  //   if (loading) {
+  //     setRefreshing(true)
+  //   }
+  //   setRefreshing(false)
+  // }, [])
 
 
   const renderStories = ({ item }) => {
-    const uri = item.stories[0]?.url
+    const uri = item.User.Stories[0]?.url
     const storyPreview = () => {
       if (uri?.includes('.mov')) {
         return (
@@ -138,7 +171,7 @@ export const HomeScreen: Component = observer(function HomeScreen() {
             uri ? navigation.navigate('story', { ...item }) : null}
             }>
           {storyPreview() ? storyPreview() : <ProgressiveImage
-            source={{ uri: item?.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif'  }}
+            source={{ uri: item?.User.profilePicture || 'https://medgoldresources.com/wp-content/uploads/2018/02/avatar-placeholder.gif'  }}
             style={styles.IMAGE}
           />}
           <View style={{...styles.OVERLAY, backgroundColor: storyPreview() ? 'rgba(0, 0, 0, .25)' : 'rgba(0, 0, 0, .55)' ,}}>
@@ -203,15 +236,16 @@ export const HomeScreen: Component = observer(function HomeScreen() {
           />
           : <>
             <View style={styles.WRAPPER}>
-              {userStories && <FlatList
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                data={userStories?.group.users}
+              {data && <FlatList
+                // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                data={data?._GroupToUser}
                 renderItem={renderStories}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item.User.id}
                 showsVerticalScrollIndicator={false}
                 numColumns={2}
               />}
             </View>
+            {error && <ErrorPopup error={error} />}
           </>
       }
       <StatusBar style="dark" />

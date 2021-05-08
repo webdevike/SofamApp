@@ -32,10 +32,11 @@ const STORY_COUNT: ViewStyle = {
 }
 
 export const StoryScreen: Component = observer(function StoryScreen({ route }) {
+  console.log("🚀 ~ file: story-screen.tsx ~ line 35 ~ StoryScreen ~ route", route)
   const navigation = useNavigation()
   return (
     <View style={IMAGE_OVERLAY_CONTAINER as ViewStyle}>
-      <ImageSlider entries={route.params.stories}/>
+      <ImageSlider entries={route.params.User.Stories}/>
       {/* <View style={styles.indicators}>
         {[...Array(storyCount)].map((e, i) => <View style={STORY_COUNT} key={i}></View>)}
       </View> */}
